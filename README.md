@@ -1,2 +1,2 @@
 # ServerlessBlog
-Highly opinionated serverless blog engine and clients, built with .NET 6
+Highly opinionated serverless blog engine built with .NET 6
