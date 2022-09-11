@@ -9,6 +9,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore", "EFCore\EFCore.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.DesignDummy", "EFCore.DesignDummy\EFCore.DesignDummy.csproj", "{90BCEBF2-AE1B-490E-8761-9E6172BADDF9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{DBEAF35B-7B04-42FF-B412-C39D790A8C80}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{A04BD30F-1308-48C8-977B-CD76DFAA99B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogFunctions", "BlogFunctions\BlogFunctions.csproj", "{61F4D832-0019-486D-8CF4-1769458BF6A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1617964A-ABB9-4308-BCC0-8726CA95490A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		nuget.config = nuget.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,11 +39,21 @@ Global
 		{90BCEBF2-AE1B-490E-8761-9E6172BADDF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90BCEBF2-AE1B-490E-8761-9E6172BADDF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90BCEBF2-AE1B-490E-8761-9E6172BADDF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61F4D832-0019-486D-8CF4-1769458BF6A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61F4D832-0019-486D-8CF4-1769458BF6A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61F4D832-0019-486D-8CF4-1769458BF6A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61F4D832-0019-486D-8CF4-1769458BF6A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {748A0AB1-98C8-4E2C-808A-0BD1A967E1FE}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{36D63CEB-AF54-430E-9DDE-734B0552E6B4} = {A04BD30F-1308-48C8-977B-CD76DFAA99B1}
+		{21F8927F-E7C9-4BAD-86FF-3C9068711BF4} = {DBEAF35B-7B04-42FF-B412-C39D790A8C80}
+		{90BCEBF2-AE1B-490E-8761-9E6172BADDF9} = {DBEAF35B-7B04-42FF-B412-C39D790A8C80}
+		{61F4D832-0019-486D-8CF4-1769458BF6A3} = {DBEAF35B-7B04-42FF-B412-C39D790A8C80}
 	EndGlobalSection
 EndGlobal

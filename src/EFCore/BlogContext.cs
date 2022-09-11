@@ -1,30 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MSiccDev.ServerlessBlog.Model;
 
 namespace MSiccDev.ServerlessBlog.EFCore
 {
-	public class BlogContext : DbContext
+	public sealed class BlogContext : DbContext
 	{
-		private readonly string _connectionString;
-
-		public BlogContext(string connectionString)
-		{
-			_connectionString = connectionString;
-		}
-
 		public BlogContext(DbContextOptions<BlogContext> options) : base(options)
 		{
-		}
 
-		protected override void OnConfiguring(DbContextOptionsBuilder options)
-		{
-			if (!string.IsNullOrWhiteSpace(_connectionString))
-				options.UseSqlServer(_connectionString);
-			else
-				options.UseSqlServer();
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -126,7 +116,6 @@ namespace MSiccDev.ServerlessBlog.EFCore
 		private void ConfigureTags(ModelBuilder modelBuilder) =>
 				modelBuilder.Entity<Tag>().
 				HasKey(tag => tag.TagId).HasName($"PK_{nameof(Tag.TagId)}");
-
 
 		public DbSet<Blog> Blogs { get; set; }
 		public DbSet<Post> Posts { get; set; }
