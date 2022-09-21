@@ -24,15 +24,10 @@ namespace MSiccDev.ServerlessBlog.Model
         public Author Author { get; set; }
         public Guid AuthorId { get; set; }
 
-        public Guid BlogId { get; set; }
         public Blog Blog { get; set; }
+        public Guid BlogId { get; set; }
 
-
-        public List<Tag> Tags { get; set; } = new List<Tag>();
-
-        public List<Media> Media { get; set; } = new List<Media>();
-
-        public List<PostMediaMapping> PostMediaMappings { get; set; }
+        public ICollection<Tag> Tags { get; set; }
         public List<PostTagMapping> PostTagMappings { get; set; }
 
         public bool Equals(Post other)
@@ -51,9 +46,7 @@ namespace MSiccDev.ServerlessBlog.Model
                 this.Author == other.Author &&
                 this.AuthorId == other.AuthorId &&
                 this.Published == other.Published &&
-                this.LastModified == other.LastModified &&
-                this.Media.Except(other.Media).Count() == 0 &&
-                this.Tags.Except(other.Tags).Count() == 0;
+                this.LastModified == other.LastModified;
         }
 
         public override bool Equals(object obj)
@@ -80,12 +73,6 @@ namespace MSiccDev.ServerlessBlog.Model
             hash.Add(this.Slug);
             hash.Add(this.Published);
             hash.Add(this.LastModified);
-
-            for (int index = 0; index < this.Media.Count; index++)
-                hash.Add(this.Media[index]);
-
-            for (int index = 0; index < this.Tags.Count; index++)
-                hash.Add(this.Tags[index]);
 
             return hash.ToHashCode();
         }

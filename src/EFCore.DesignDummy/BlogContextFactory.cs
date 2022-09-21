@@ -13,7 +13,8 @@ namespace MSiccDev.ServerlessBlog.EFCore.DesignDummy
             var optionsBuilder = new DbContextOptionsBuilder<BlogContext>();
 
             optionsBuilder.UseSqlServer(dbContextBuilder =>
-                dbContextBuilder.MigrationsAssembly("EFCore.DesignDummy"));
+                dbContextBuilder.MigrationsAssembly("EFCore.DesignDummy")).
+                EnableSensitiveDataLogging();
 
             instance = new BlogContext(optionsBuilder.Options);
 

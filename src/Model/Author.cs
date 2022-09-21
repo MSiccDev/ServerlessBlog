@@ -13,11 +13,12 @@ namespace MSiccDev.ServerlessBlog.Model
         public string UserName { get; set; }
 
         public Media UserImage { get; set; }
-        public Guid UserImageId { get; set; }
+        public Guid? UserImageId { get; set; }
 
         public List<Post> Posts { get; set; }
 
-        public List<Blog> Blogs { get; set; }
+        public Blog Blog { get; set; }
+        public Guid BlogId { get; set; }
 
 
         public bool Equals(Author other)
@@ -29,9 +30,7 @@ namespace MSiccDev.ServerlessBlog.Model
                 this.AuthorId == other.AuthorId &&
                 this.DisplayName == other.DisplayName &&
                 this.UserName == other.UserName &&
-                this.UserImage == other.UserImage &&
-                this.Posts.Except(other.Posts).Count() == 0 &&
-                this.Blogs.Except(other.Blogs).Count() == 0;
+                this.UserImage == other.UserImage;
         }
 
         public override bool Equals(object obj)
@@ -51,12 +50,6 @@ namespace MSiccDev.ServerlessBlog.Model
             hash.Add(this.DisplayName);
             hash.Add(this.UserName);
             hash.Add(this.UserImage);
-
-            for (int index = 0; index < this.Blogs.Count; index++)
-                hash.Add(this.Blogs[index]);
-
-            for (int index = 0; index < this.Posts.Count; index++)
-                hash.Add(this.Posts[index]);
 
             return hash.ToHashCode();
         }
