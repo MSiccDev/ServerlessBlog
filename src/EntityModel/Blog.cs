@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace MSiccDev.ServerlessBlog.Model
+namespace MSiccDev.ServerlessBlog.EntityModel
 {
     public class Blog : IEquatable<Blog>
     {

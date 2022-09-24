@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace MSiccDev.ServerlessBlog.Model
+namespace MSiccDev.ServerlessBlog.EntityModel
 {
     public static class Extensions
     {

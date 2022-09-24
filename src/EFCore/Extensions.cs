@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using MSiccDev.ServerlessBlog.Model;
+using MSiccDev.ServerlessBlog.EntityModel;
 
 namespace MSiccDev.ServerlessBlog.EFCore
 {

@@ -29,10 +29,19 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\DtoModel\DtoModel.csproj">
+	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+	  </ProjectReference>
 	  <ProjectReference Include="..\EFCore\EFCore.csproj">
 	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
 	  </ProjectReference>
-	  <ProjectReference Include="..\Model\Model.csproj">
+	  <ProjectReference Include="..\MappingHelper\ModelHelper.csproj">
+	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+	  </ProjectReference>
+	  <ProjectReference Include="..\ModelHelper\ModelHelper.csproj">
+	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+	  </ProjectReference>
+	  <ProjectReference Include="..\EntityModel\EntityModel.csproj">
 	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
 	  </ProjectReference>
 	</ItemGroup>

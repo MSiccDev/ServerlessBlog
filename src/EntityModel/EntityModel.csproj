@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
-		<RootNamespace>MSiccDev.ServerlessBlog.Model</RootNamespace>
+		<RootNamespace>MSiccDev.ServerlessBlog.EntityModel</RootNamespace>
 		<SynchReleaseVersion>false</SynchReleaseVersion>
 	</PropertyGroup>
 	<ItemGroup>

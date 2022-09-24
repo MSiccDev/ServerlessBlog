@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using MSiccDev.ServerlessBlog.Model;
+using MSiccDev.ServerlessBlog.EntityModel;
 
 namespace MSiccDev.ServerlessBlog.EFCore.Configurations
 {

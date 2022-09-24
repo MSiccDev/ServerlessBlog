@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MSiccDev.ServerlessBlog.Model
+namespace MSiccDev.ServerlessBlog.EntityModel
 {
     public class Author : IEquatable<Author>
     {

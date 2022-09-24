@@ -12,16 +12,17 @@ using MSiccDev.ServerlessBlog.EFCore;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
-	public class Startup : FunctionsStartup
-	{
-		public override void Configure(IFunctionsHostBuilder builder)
-		{
-			FunctionsHostBuilderContext functionContext = builder.GetContext();
-			string connectionString = functionContext.Configuration["Database:ConnectionString"];
+    public class Startup : FunctionsStartup
+    {
+        public override void Configure(IFunctionsHostBuilder builder)
+        {
+            FunctionsHostBuilderContext functionContext = builder.GetContext();
+            string connectionString = functionContext.Configuration["Database:ConnectionString"];
 
-			builder.Services.AddDbContext<BlogContext>(options =>
-					SqlServerDbContextOptionsExtensions.UseSqlServer(options, connectionString));
-		}
-	}
+            builder.Services.AddDbContext<BlogContext>(options =>
+                    SqlServerDbContextOptionsExtensions.UseSqlServer(options, connectionString));
+
+        }
+    }
 }
 

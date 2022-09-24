@@ -1,5 +1,5 @@
 ﻿using System;
-namespace MSiccDev.ServerlessBlog.Model
+namespace MSiccDev.ServerlessBlog.EntityModel
 {
     public class PostTagMapping
     {

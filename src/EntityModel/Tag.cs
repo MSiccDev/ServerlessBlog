@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MSiccDev.ServerlessBlog.Model
+namespace MSiccDev.ServerlessBlog.EntityModel
 {
     public class Tag : IEquatable<Tag>
     {

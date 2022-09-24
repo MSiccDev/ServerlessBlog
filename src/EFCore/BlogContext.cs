@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MSiccDev.ServerlessBlog.EFCore.Configurations;
-using MSiccDev.ServerlessBlog.Model;
+using MSiccDev.ServerlessBlog.EntityModel;
 
 namespace MSiccDev.ServerlessBlog.EFCore
 {
@@ -34,7 +34,7 @@ namespace MSiccDev.ServerlessBlog.EFCore
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Author> Authors { get; set; }
-        public DbSet<MSiccDev.ServerlessBlog.Model.Media> Media { get; set; }
+        public DbSet<MSiccDev.ServerlessBlog.EntityModel.Media> Media { get; set; }
         public DbSet<MediaType> MediaTypes { get; set; }
         public DbSet<Tag> Tags { get; set; }
     }

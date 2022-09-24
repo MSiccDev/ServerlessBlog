@@ -9,11 +9,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using MSiccDev.ServerlessBlog.EFCore;
 using System.Runtime.CompilerServices;
-using MSiccDev.ServerlessBlog.Model;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using MSiccDev.ServerlessBlog.MappingHelper;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
@@ -23,9 +23,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         private const string Route = "post";
 
+        private readonly JsonSerializerSettings _jsonSerializerSettings;
+
         public PostsFunction(BlogContext blogContext)
         {
             _blogContext = blogContext ?? throw new ArgumentNullException(nameof(blogContext));
+
+            //haven't found a way to set this globally... 
+            _jsonSerializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
+            };
         }
 
 
@@ -35,13 +45,15 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            Post post = JsonConvert.DeserializeObject<Post>(requestBody);
+            EntityModel.Post post = JsonConvert.DeserializeObject<EntityModel.Post>(requestBody);
 
             if (post != null)
             {
                 try
                 {
-                    EntityEntry<Post> createdPostEntity = await _blogContext.AddAsync(post);
+                    EntityEntry<EntityModel.Post> createdPostEntity =
+                        await _blogContext.AddAsync(post);
+
                     await _blogContext.SaveChangesAsync();
 
                     return new CreatedResult($"/{createdPostEntity.Entity.Slug}", createdPostEntity.Entity);
@@ -80,16 +92,29 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     var queryParams = req.GetQueryParameterDictionary();
                     log.LogInformation("Trying to get posts", queryParams.ToArray());
 
+                    int count = 10;
+                    int skip = 0;
                     //simple paging of results
-                    bool hasCountParam = int.TryParse(queryParams["count"], out int count);
-                    bool hasSkipParam = int.TryParse(queryParams["skip"], out int skip);
+                    if (queryParams.Any(p => p.Key == nameof(count)))
+                        int.TryParse(queryParams["count"], out count);
 
-                    List<Post> resultSet = await _blogContext.Posts.
+                    if (queryParams.Any(p => p.Key == nameof(skip)))
+                        int.TryParse(queryParams["skip"], out skip);
+
+                    List<EntityModel.Post> entityResultSet = await _blogContext.Posts.
                                           OrderByDescending(post => post.Published).
-                                          Skip(hasSkipParam ? skip : 0).
-                                          Take(hasCountParam ? count : 10).ToListAsync();
+                                          Include(post => post.Tags).
+                                          Include(post => post.Author).
+                                          ThenInclude(author => author.UserImage).
+                                          ThenInclude(media => media.MediaType).
+                                          Include(post => post.PostImage).
+                                          ThenInclude(media => media.MediaType).
+                                          Skip(skip).
+                                          Take(count).ToListAsync();
 
-                    return new OkObjectResult(resultSet);
+                    List<DtoModel.Post> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
+
+                    return new OkObjectResult(JsonConvert.SerializeObject(resultSet, _jsonSerializerSettings));
                 }
             }
 
@@ -108,7 +133,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            Post post = JsonConvert.DeserializeObject<Post>(requestBody);
+            EntityModel.Post post = JsonConvert.DeserializeObject<EntityModel.Post>(requestBody);
 
             if (post != null)
             {

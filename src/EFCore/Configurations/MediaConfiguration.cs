@@ -2,7 +2,7 @@
 using System.Reflection.Emit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using MSiccDev.ServerlessBlog.Model;
+using MSiccDev.ServerlessBlog.EntityModel;
 
 namespace MSiccDev.ServerlessBlog.EFCore.Configurations
 {
@@ -11,12 +11,12 @@ namespace MSiccDev.ServerlessBlog.EFCore.Configurations
         public void Configure(EntityTypeBuilder<Media> builder)
         {
             builder.HasKey(media => media.MediaId).
-                    HasName($"PK_{nameof(MSiccDev.ServerlessBlog.Model.Media.MediaId)}");
+                    HasName($"PK_{nameof(MSiccDev.ServerlessBlog.EntityModel.Media.MediaId)}");
 
-            builder.Property(nameof(MSiccDev.ServerlessBlog.Model.Media.MediaId)).
+            builder.Property(nameof(MSiccDev.ServerlessBlog.EntityModel.Media.MediaId)).
                     ValueGeneratedOnAdd();
 
-            builder.Property(nameof(MSiccDev.ServerlessBlog.Model.Media.MediaUrl)).
+            builder.Property(nameof(MSiccDev.ServerlessBlog.EntityModel.Media.MediaUrl)).
                     IsRequired();
 
             builder.Property(nameof(Media.MediaTypeId)).
