@@ -18,9 +18,6 @@ namespace MSiccDev.ServerlessBlog.EntityModel
         public DateTimeOffset Published { get; set; }
         public DateTimeOffset LastModified { get; set; }
 
-        public Media PostImage { get; set; }
-        public Guid PostImageMediaId { get; set; }
-
         public Author Author { get; set; }
         public Guid AuthorId { get; set; }
 
@@ -28,7 +25,10 @@ namespace MSiccDev.ServerlessBlog.EntityModel
         public Guid BlogId { get; set; }
 
         public ICollection<Tag> Tags { get; set; }
+        public ICollection<Medium> Media { get; set; }
+
         public List<PostTagMapping> PostTagMappings { get; set; }
+        public List<PostMediumMapping> PostMediumMappings { get; set; }
 
         public bool Equals(Post other)
         {
@@ -38,8 +38,6 @@ namespace MSiccDev.ServerlessBlog.EntityModel
             return
                 this.Title == other.Title &&
                 this.Content == other.Content &&
-                this.PostImage == other.PostImage &&
-                this.PostImageMediaId == other.PostImageMediaId &&
                 this.Slug == other.Slug &&
                 this.BlogId == other.BlogId &&
                 this.Blog == other.Blog &&
@@ -67,7 +65,6 @@ namespace MSiccDev.ServerlessBlog.EntityModel
             hash.Add(this.PostId);
             hash.Add(this.AuthorId);
             hash.Add(this.Author);
-            hash.Add(this.PostImageMediaId);
             hash.Add(this.Title);
             hash.Add(this.Content);
             hash.Add(this.Slug);

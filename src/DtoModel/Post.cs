@@ -15,12 +15,14 @@ namespace DtoModel
         public DateTimeOffset Published { get; set; }
         public DateTimeOffset LastModified { get; set; }
 
-        public Media PostImage { get; set; }
+        public Medium PostImage { get; set; }
 
         public Author Author { get; set; }
 
         public Guid BlogId { get; set; }
 
         public List<Tag> Tags { get; set; }
+
+        public List<Medium> Media { get; set; }
     }
 }

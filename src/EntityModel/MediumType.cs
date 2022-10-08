@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace MSiccDev.ServerlessBlog.EntityModel
 {
-    public class MediaType : IEquatable<MediaType>
+    public class MediumType : IEquatable<MediumType>
     {
-        public Guid MediaTypeId { get; set; }
+        public Guid MediumTypeId { get; set; }
 
         public string MimeType { get; set; }
 
@@ -11,31 +13,31 @@ namespace MSiccDev.ServerlessBlog.EntityModel
 
         public string Encoding { get; set; }
 
+        public ICollection<Medium> Media { get; set; }
 
-
-        public bool Equals(MediaType other)
+        public bool Equals(MediumType other)
         {
             if (other == null)
                 return false;
 
             return
-                this.MediaTypeId == other.MediaTypeId &&
+                this.MediumTypeId == other.MediumTypeId &&
                 this.MimeType == other.MimeType &&
                 this.Name == other.Name &&
                 this.Encoding == other.Encoding;
         }
 
         public override bool Equals(object obj)
-            => obj is MediaType other && Equals(other);
+            => obj is MediumType other && Equals(other);
 
-        public static bool operator ==(in MediaType self, in MediaType other)
+        public static bool operator ==(in MediumType self, in MediumType other)
             => Equals(self, other);
 
-        public static bool operator !=(in MediaType self, in MediaType other)
+        public static bool operator !=(in MediumType self, in MediumType other)
             => !Equals(self, other);
 
         public override int GetHashCode()
-            => HashCode.Combine(this.MediaTypeId, this.MimeType, this.Name, this.Encoding);
+            => HashCode.Combine(this.MediumTypeId, this.MimeType, this.Name, this.Encoding);
 
     }
 }

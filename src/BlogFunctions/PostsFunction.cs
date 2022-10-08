@@ -14,6 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using MSiccDev.ServerlessBlog.MappingHelper;
+using MSiccDev.ServerlessBlog.ModelHelper;
+using MSiccDev.ServerlessBlog.EntityModel;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
@@ -45,18 +47,22 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            EntityModel.Post post = JsonConvert.DeserializeObject<EntityModel.Post>(requestBody);
+            DtoModel.Post post = JsonConvert.DeserializeObject<DtoModel.Post>(requestBody);
 
             if (post != null)
             {
                 try
                 {
+                    EntityModel.Post newPostEntity = post.CreateFrom();
+
                     EntityEntry<EntityModel.Post> createdPostEntity =
-                        await _blogContext.AddAsync(post);
+                         _blogContext.Posts.Add(newPostEntity);
 
                     await _blogContext.SaveChangesAsync();
 
-                    return new CreatedResult($"/{createdPostEntity.Entity.Slug}", createdPostEntity.Entity);
+                    var result = new CreatedResult($"/{Route}/{createdPostEntity.Entity.PostId}", "OK");
+
+                    return result;
                 }
                 catch (Exception ex)
                 {
@@ -74,9 +80,32 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                var queryParams = req.GetQueryParameterDictionary();
+
+                bool includeDetails = false;
+                if (queryParams.Any(p => p.Key == nameof(includeDetails).ToLowerInvariant()))
+                    bool.TryParse(queryParams[nameof(includeDetails).ToLowerInvariant()], out includeDetails);
+
+
                 if (!string.IsNullOrWhiteSpace(id))
                 {
-                    var existingPost = await _blogContext.Posts.FindAsync(Guid.Parse(id));
+
+                    EntityModel.Post existingPost = null;
+
+                    if (includeDetails)
+                    {
+                        existingPost = await _blogContext.Posts.
+                                          Include(post => post.Tags).
+                                          Include(post => post.Author).
+                                          Include(post => post.Media).
+                                          ThenInclude(media => media.MediumType).
+                                          Include(post => post.PostMediumMappings).
+                                          SingleOrDefaultAsync(post => post.PostId == Guid.Parse(id));
+                    }
+                    else
+                    {
+                        existingPost = await _blogContext.Posts.SingleOrDefaultAsync(post => post.PostId == Guid.Parse(id));
+                    }
 
                     if (existingPost == null)
                     {
@@ -84,33 +113,45 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                         return new NotFoundResult();
                     }
 
-                    return new OkObjectResult(existingPost);
+
+
+                    return new OkObjectResult(JsonConvert.SerializeObject(existingPost.ToDto(), _jsonSerializerSettings));
 
                 }
                 else
                 {
-                    var queryParams = req.GetQueryParameterDictionary();
                     log.LogInformation("Trying to get posts", queryParams.ToArray());
 
                     int count = 10;
                     int skip = 0;
-                    //simple paging of results
+                    List<EntityModel.Post> entityResultSet = new List<EntityModel.Post>();
+
                     if (queryParams.Any(p => p.Key == nameof(count)))
-                        int.TryParse(queryParams["count"], out count);
+                        int.TryParse(queryParams[nameof(count)], out count);
 
                     if (queryParams.Any(p => p.Key == nameof(skip)))
-                        int.TryParse(queryParams["skip"], out skip);
+                        int.TryParse(queryParams[nameof(skip)], out skip);
 
-                    List<EntityModel.Post> entityResultSet = await _blogContext.Posts.
+                    if (includeDetails)
+                    {
+                        entityResultSet = await _blogContext.Posts.
                                           OrderByDescending(post => post.Published).
                                           Include(post => post.Tags).
                                           Include(post => post.Author).
-                                          ThenInclude(author => author.UserImage).
-                                          ThenInclude(media => media.MediaType).
-                                          Include(post => post.PostImage).
-                                          ThenInclude(media => media.MediaType).
+                                          Include(post => post.Media).
+                                          ThenInclude(media => media.MediumType).
+                                          Include(post => post.PostMediumMappings).
                                           Skip(skip).
                                           Take(count).ToListAsync();
+                    }
+                    else
+                    {
+                        entityResultSet = await _blogContext.Posts.
+                                          OrderByDescending(post => post.Published).
+                                          Skip(skip).
+                                          Take(count).ToListAsync();
+
+                    }
 
                     List<DtoModel.Post> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
 
@@ -125,7 +166,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
+
         //TODO: SEARCH (by Title, by Author, by Tag)
+
 
         [FunctionName($"{nameof(PostsFunction)}_{nameof(Update)}")]
         public async Task<IActionResult> Update(
@@ -133,13 +176,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            EntityModel.Post post = JsonConvert.DeserializeObject<EntityModel.Post>(requestBody);
+            DtoModel.Post post = JsonConvert.DeserializeObject<DtoModel.Post>(requestBody);
 
             if (post != null)
             {
                 try
                 {
-                    var existingPost = await _blogContext.Posts.FindAsync(Guid.Parse(id));
+                    var existingPost = await _blogContext.Posts.
+                                              Include(post => post.Tags).
+                                              Include(post => post.Author).
+                                              Include(post => post.Media).
+                                              ThenInclude(media => media.MediumType).
+                                              Include(post => post.PostMediumMappings).
+                                              SingleOrDefaultAsync(post => post.PostId == Guid.Parse(id));
 
                     if (existingPost == null)
                     {
@@ -147,13 +196,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                         return new NotFoundResult();
                     }
 
-                    if (post != existingPost)
-                    {
-                        existingPost = post;
-                        await _blogContext.SaveChangesAsync();
-                    }
+                    DateTimeOffset lastUpdated = existingPost.LastModified;
 
-                    return new OkObjectResult(post);
+                    existingPost.UpdateWith(post);
+
+                    if (existingPost.LastModified > lastUpdated)
+                        await _blogContext.SaveChangesAsync();
+
+                    return new AcceptedResult();
                 }
                 catch (Exception ex)
                 {
@@ -165,13 +215,17 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             return new BadRequestObjectResult("Submitted data is invalid, post cannot be modified.");
         }
 
+
         [FunctionName($"{nameof(PostsFunction)}_{nameof(Delete)}")]
         public async Task<IActionResult> Delete(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
         {
             try
             {
-                var existingPost = await _blogContext.Posts.FindAsync(Guid.Parse(id));
+                EntityModel.Post existingPost = await _blogContext.Posts.
+                                                        Include(post => post.Tags).
+                                                        Include(post => post.Media).
+                                                        SingleOrDefaultAsync(post => post.PostId == Guid.Parse(id));
 
                 if (existingPost == null)
                 {

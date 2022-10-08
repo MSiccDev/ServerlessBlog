@@ -19,6 +19,6 @@ namespace DtoModel
 
         public List<Tag> Tags { get; set; }
 
-        public List<Media> Media { get; set; }
+        public List<Medium> Media { get; set; }
     }
 }

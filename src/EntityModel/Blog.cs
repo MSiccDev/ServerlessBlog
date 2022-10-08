@@ -21,7 +21,7 @@ namespace MSiccDev.ServerlessBlog.EntityModel
 
         public ICollection<Tag> Tags { get; set; }
 
-        public ICollection<Media> Media { get; set; }
+        public ICollection<Medium> Media { get; set; }
 
         public bool Equals(Blog other)
         {

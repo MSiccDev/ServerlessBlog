@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using DtoModel;
 
 namespace MSiccDev.ServerlessBlog.MappingHelper
 {
@@ -13,8 +15,7 @@ namespace MSiccDev.ServerlessBlog.MappingHelper
             {
                 AuthorId = entity.AuthorId,
                 DisplayName = entity.DisplayName,
-                UserName = entity.UserName,
-                UserImage = entity.UserImage != null ? entity.UserImage.ToDto() : null
+                UserName = entity.UserName
             };
         }
 
@@ -33,23 +34,23 @@ namespace MSiccDev.ServerlessBlog.MappingHelper
             };
         }
 
-        public static DtoModel.Media ToDto(this EntityModel.Media entity)
+        public static DtoModel.Medium ToDto(this EntityModel.Medium entity)
         {
-            return new DtoModel.Media()
+            return new DtoModel.Medium()
             {
-                MediaId = entity.MediaId,
-                MediaType = entity.MediaType.ToDto(),
-                MediaUrl = entity.MediaUrl,
+                MediumId = entity.MediumId,
+                MediumType = entity.MediumType.ToDto(),
+                MediumUrl = entity.MediumUrl,
                 AlternativeText = entity.AlternativeText,
                 Description = entity.Description
             };
         }
 
-        public static DtoModel.MediaType ToDto(this EntityModel.MediaType entity)
+        public static DtoModel.MediumType ToDto(this EntityModel.MediumType entity)
         {
-            return new DtoModel.MediaType()
+            return new DtoModel.MediumType()
             {
-                MediaTypeId = entity.MediaTypeId,
+                MediaTypeId = entity.MediumTypeId,
                 MimeType = entity.MimeType,
                 Name = entity.Name,
                 Encoding = entity.Encoding
@@ -68,19 +69,30 @@ namespace MSiccDev.ServerlessBlog.MappingHelper
 
         public static DtoModel.Post ToDto(this EntityModel.Post entity)
         {
-            return new DtoModel.Post()
+            DtoModel.Post result = new DtoModel.Post()
             {
                 PostId = entity.PostId,
                 BlogId = entity.BlogId,
-                Author = entity.Author.ToDto(),
+                Author = entity.Author != null ? entity.Author.ToDto() : null,
                 Title = entity.Title,
                 Content = entity.Content,
                 LastModified = entity.LastModified,
                 Published = entity.Published,
-                PostImage = entity.PostImage != null ? entity.PostImage.ToDto() : null,
                 Slug = entity.Slug,
-                Tags = entity.Tags.Select(entity => entity.ToDto()).ToList()
+                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : null,
+                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : null
             };
+
+            foreach (Medium medium in result.Media)
+            {
+                medium.IsPostImage = entity.PostMediumMappings?.
+                                            SingleOrDefault(mapping =>
+                                            mapping.MediumId == medium.MediumId &&
+                                            mapping.PostId == result.PostId
+                                            )?.AsFeatuerdOnPost ?? false;
+            }
+
+            return result;
         }
     }
 }

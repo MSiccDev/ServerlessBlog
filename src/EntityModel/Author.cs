@@ -12,13 +12,13 @@ namespace MSiccDev.ServerlessBlog.EntityModel
 
         public string UserName { get; set; }
 
-        public Media UserImage { get; set; }
+        public Medium UserImage { get; set; }
         public Guid? UserImageId { get; set; }
-
-        public List<Post> Posts { get; set; }
 
         public Blog Blog { get; set; }
         public Guid BlogId { get; set; }
+
+        public ICollection<Post> Posts { get; set; }
 
 
         public bool Equals(Author other)
@@ -29,8 +29,7 @@ namespace MSiccDev.ServerlessBlog.EntityModel
             return
                 this.AuthorId == other.AuthorId &&
                 this.DisplayName == other.DisplayName &&
-                this.UserName == other.UserName &&
-                this.UserImage == other.UserImage;
+                this.UserName == other.UserName;
         }
 
         public override bool Equals(object obj)
@@ -49,7 +48,6 @@ namespace MSiccDev.ServerlessBlog.EntityModel
             hash.Add(this.AuthorId);
             hash.Add(this.DisplayName);
             hash.Add(this.UserName);
-            hash.Add(this.UserImage);
 
             return hash.ToHashCode();
         }

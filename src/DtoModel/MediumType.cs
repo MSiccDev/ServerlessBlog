@@ -2,7 +2,7 @@
 
 namespace DtoModel
 {
-    public class MediaType
+    public class MediumType
     {
         public Guid MediaTypeId { get; set; }
 

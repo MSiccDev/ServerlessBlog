@@ -21,8 +21,8 @@ namespace MSiccDev.ServerlessBlog.EFCore
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new BlogConfiguration());
-            modelBuilder.ApplyConfiguration(new MediaTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new MediaConfiguration());
+            modelBuilder.ApplyConfiguration(new MediumypeConfiguration());
+            modelBuilder.ApplyConfiguration(new MediumConfiguration());
             modelBuilder.ApplyConfiguration(new AuthorConfiguration());
             modelBuilder.ApplyConfiguration(new TagConfiguration());
             modelBuilder.ApplyConfiguration(new PostConfiguration());
@@ -34,8 +34,8 @@ namespace MSiccDev.ServerlessBlog.EFCore
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Author> Authors { get; set; }
-        public DbSet<MSiccDev.ServerlessBlog.EntityModel.Media> Media { get; set; }
-        public DbSet<MediaType> MediaTypes { get; set; }
+        public DbSet<MSiccDev.ServerlessBlog.EntityModel.Medium> Media { get; set; }
+        public DbSet<MediumType> MediaTypes { get; set; }
         public DbSet<Tag> Tags { get; set; }
     }
 }

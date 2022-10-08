@@ -16,6 +16,9 @@ namespace MSiccDev.ServerlessBlog.EFCore.Configurations
             builder.HasKey(post => post.PostId).
                     HasName($"PK_{nameof(Post.PostId)}");
 
+            builder.HasAlternateKey(post => post.Slug).
+                    HasName($"AK_{nameof(Post.Slug)}");
+
             builder.Property(nameof(Post.PostId)).
                     ValueGeneratedOnAdd();
 
@@ -28,7 +31,7 @@ namespace MSiccDev.ServerlessBlog.EFCore.Configurations
                     IsRequired();
 
             builder.Property(nameof(Post.Published)).
-                    HasDefaultValueSql("GETDATE()");
+                    HasDefaultValue(default);
 
             builder.Property(nameof(Post.LastModified)).
                     HasDefaultValueSql("GETDATE()");
@@ -46,11 +49,6 @@ namespace MSiccDev.ServerlessBlog.EFCore.Configurations
                     WithMany(author => author.Posts).
                     HasForeignKey(post => post.AuthorId).
                     HasConstraintName($"FK_{nameof(Post)}_{nameof(Author)}").
-                    OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasOne(post => post.PostImage).WithMany().
-                    HasForeignKey(post => post.PostImageMediaId).
-                    HasConstraintName($"FK_{nameof(Post.PostImageMediaId)}").
                     OnDelete(DeleteBehavior.NoAction);
 
             builder.HasMany(post => post.Tags).
@@ -71,6 +69,26 @@ namespace MSiccDev.ServerlessBlog.EFCore.Configurations
                     join =>
                     {
                         join.HasKey(mapping => new { mapping.PostId, mapping.TagId });
+                    });
+
+            builder.HasMany(post => post.Media).
+                    WithMany(medium => medium.Posts).
+                    UsingEntity<PostMediumMapping>(
+                    join => join.
+                        HasOne(mapping => mapping.Medium).
+                        WithMany(medium => medium.PostMediumMappings).
+                        HasForeignKey(mapping => mapping.MediumId).
+                        HasConstraintName($"FK_{nameof(PostMediumMapping)}_{nameof(Post.Media)}_{nameof(PostMediumMapping.MediumId)}").
+                        OnDelete(DeleteBehavior.Cascade),
+                    join => join.
+                        HasOne(mapping => mapping.Post).
+                        WithMany(medium => medium.PostMediumMappings).
+                        HasForeignKey(mapping => mapping.PostId).
+                        HasConstraintName($"FK_{nameof(PostMediumMapping)}_{nameof(Medium.Posts)}_{nameof(PostMediumMapping.PostId)}").
+                        OnDelete(DeleteBehavior.ClientCascade),
+                    join =>
+                    {
+                        join.HasKey(mapping => new { mapping.PostId, mapping.MediumId });
                     });
 
         }

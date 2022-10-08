@@ -15,6 +15,7 @@ namespace MSiccDev.ServerlessBlog.EntityModel
         public Blog Blog { get; set; }
 
         public ICollection<Post> Posts { get; set; }
+
         public List<PostTagMapping> PostTagMappings { get; set; }
 
         public bool Equals(Tag other)

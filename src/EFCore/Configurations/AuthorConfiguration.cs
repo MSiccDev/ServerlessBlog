@@ -23,14 +23,16 @@ namespace MSiccDev.ServerlessBlog.EFCore.Configurations
                     HasMaxLength(255).
                     IsRequired();
 
-            builder.Property(nameof(Author.UserImageId)).
+            builder.HasOne(author => author.UserImage).
+                    WithMany(medium => medium.Authors).
+                    HasForeignKey(author => author.UserImageId).
+                    HasConstraintName($"FK{nameof(Author)}_{nameof(Medium)}").
                     IsRequired(false);
 
             builder.HasOne(author => author.Blog).
                     WithMany(blog => blog.Authors).
                     HasForeignKey(author => author.BlogId).
                     HasConstraintName($"FK_{nameof(Author)}_{nameof(Blog)}");
-
         }
     }
 }

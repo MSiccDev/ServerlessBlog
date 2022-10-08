@@ -11,7 +11,7 @@ namespace DtoModel
 
         public string UserName { get; set; }
 
-        public Media UserImage { get; set; }
+        public Medium UserImage { get; set; }
     }
 }
 
