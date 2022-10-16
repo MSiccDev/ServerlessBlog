@@ -16,34 +16,21 @@ using System.Linq;
 using MSiccDev.ServerlessBlog.MappingHelper;
 using MSiccDev.ServerlessBlog.ModelHelper;
 using MSiccDev.ServerlessBlog.EntityModel;
+using DtoModel;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
-    public class PostsFunction
+    public class PostsFunction : FunctionBase
     {
-        private readonly BlogContext _blogContext;
+        private const string Route = "blog/{blogId}/post";
 
-        private const string Route = "post";
-
-        private readonly JsonSerializerSettings _jsonSerializerSettings;
-
-        public PostsFunction(BlogContext blogContext)
+        public PostsFunction(BlogContext blogContext) : base(blogContext)
         {
-            _blogContext = blogContext ?? throw new ArgumentNullException(nameof(blogContext));
-
-            //haven't found a way to set this globally... 
-            _jsonSerializerSettings = new JsonSerializerSettings()
-            {
-                Formatting = Formatting.Indented,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            };
         }
 
-
         [FunctionName($"{nameof(PostsFunction)}_{nameof(Create)}")]
-        public async Task<IActionResult> Create(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = Route)] HttpRequest req, ILogger log)
+        public override async Task<IActionResult> Create(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -53,6 +40,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             {
                 try
                 {
+                    if (post.BlogId != Guid.Parse(blogId))
+                        return new BadRequestObjectResult($"Cannot create a post on a different blog.");
+
                     EntityModel.Post newPostEntity = post.CreateFrom();
 
                     EntityEntry<EntityModel.Post> createdPostEntity =
@@ -60,9 +50,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     await _blogContext.SaveChangesAsync();
 
-                    var result = new CreatedResult($"/{Route}/{createdPostEntity.Entity.PostId}", "OK");
-
-                    return result;
+                    return new CreatedResult($"/{Route}/{createdPostEntity.Entity.PostId}", "OK");
                 }
                 catch (Exception ex)
                 {
@@ -74,9 +62,10 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             return new BadRequestObjectResult("Submitted data is invalid, post cannot be created.");
         }
 
+
         [FunctionName($"{nameof(PostsFunction)}_{nameof(Get)}")]
-        public async Task<IActionResult> Get(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = Route + "/{id?}")] HttpRequest req, ILogger log, string id = null)
+        public override async Task<IActionResult> Get(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = Route + "/{id?}")] HttpRequest req, ILogger log, string blogId, string id = null)
         {
             try
             {
@@ -96,11 +85,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     {
                         existingPost = await _blogContext.Posts.
                                           Include(post => post.Tags).
+                                          Include(post => post.PostTagMappings).
                                           Include(post => post.Author).
                                           Include(post => post.Media).
                                           ThenInclude(media => media.MediumType).
                                           Include(post => post.PostMediumMappings).
-                                          SingleOrDefaultAsync(post => post.PostId == Guid.Parse(id));
+                                          SingleOrDefaultAsync(post => post.BlogId == Guid.Parse(blogId) &&
+                                                                       post.PostId == Guid.Parse(id));
                     }
                     else
                     {
@@ -122,21 +113,17 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 {
                     log.LogInformation("Trying to get posts", queryParams.ToArray());
 
-                    int count = 10;
-                    int skip = 0;
                     List<EntityModel.Post> entityResultSet = new List<EntityModel.Post>();
 
-                    if (queryParams.Any(p => p.Key == nameof(count)))
-                        int.TryParse(queryParams[nameof(count)], out count);
-
-                    if (queryParams.Any(p => p.Key == nameof(skip)))
-                        int.TryParse(queryParams[nameof(skip)], out skip);
+                    (int count, int skip) = req.GetPagingProperties();
 
                     if (includeDetails)
                     {
                         entityResultSet = await _blogContext.Posts.
+                                          Where(post => post.BlogId == Guid.Parse(blogId)).
                                           OrderByDescending(post => post.Published).
                                           Include(post => post.Tags).
+                                          Include(post => post.PostTagMappings).
                                           Include(post => post.Author).
                                           Include(post => post.Media).
                                           ThenInclude(media => media.MediumType).
@@ -147,6 +134,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     else
                     {
                         entityResultSet = await _blogContext.Posts.
+                                          Where(post => post.BlogId == Guid.Parse(blogId)).
                                           OrderByDescending(post => post.Published).
                                           Skip(skip).
                                           Take(count).ToListAsync();
@@ -171,8 +159,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [FunctionName($"{nameof(PostsFunction)}_{nameof(Update)}")]
-        public async Task<IActionResult> Update(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
+        public override async Task<IActionResult> Update(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -184,11 +172,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 {
                     var existingPost = await _blogContext.Posts.
                                               Include(post => post.Tags).
+                                              Include(post => post.PostTagMappings).
                                               Include(post => post.Author).
                                               Include(post => post.Media).
                                               ThenInclude(media => media.MediumType).
                                               Include(post => post.PostMediumMappings).
-                                              SingleOrDefaultAsync(post => post.PostId == Guid.Parse(id));
+                                              SingleOrDefaultAsync(post => post.BlogId == Guid.Parse(blogId) &&
+                                                                           post.PostId == Guid.Parse(id));
 
                     if (existingPost == null)
                     {
@@ -217,15 +207,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [FunctionName($"{nameof(PostsFunction)}_{nameof(Delete)}")]
-        public async Task<IActionResult> Delete(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
+        public override async Task<IActionResult> Delete(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
             try
             {
                 EntityModel.Post existingPost = await _blogContext.Posts.
                                                         Include(post => post.Tags).
                                                         Include(post => post.Media).
-                                                        SingleOrDefaultAsync(post => post.PostId == Guid.Parse(id));
+                                                        SingleOrDefaultAsync(post => post.BlogId == Guid.Parse(blogId) &&
+                                                                                     post.PostId == Guid.Parse(id));
 
                 if (existingPost == null)
                 {

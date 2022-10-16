@@ -14,6 +14,6 @@ namespace DtoModel
 
         public MediumType MediumType { get; set; }
 
-        public bool IsPostImage { get; set; }
+        public bool? IsPostImage { get; set; } = null;
     }
 }

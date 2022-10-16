@@ -15,7 +15,8 @@ namespace MSiccDev.ServerlessBlog.MappingHelper
             {
                 AuthorId = entity.AuthorId,
                 DisplayName = entity.DisplayName,
-                UserName = entity.UserName
+                UserName = entity.UserName,
+                UserImage = entity.UserImage != null ? entity.UserImage.ToDto() : null,
             };
         }
 
@@ -24,13 +25,13 @@ namespace MSiccDev.ServerlessBlog.MappingHelper
             return new DtoModel.Blog()
             {
                 BlogId = entity.BlogId,
-                Authors = entity.Authors.Select(entity => entity.ToDto()).ToList(),
+                Authors = entity.Authors != null ? entity.Authors.Select(entity => entity.ToDto()).ToList() : new List<Author>(),
                 Name = entity.Name,
                 Slogan = entity.Slogan,
-                Posts = entity.Posts.Select(entity => entity.ToDto()).ToList(),
-                Media = entity.Media.Select(entity => entity.ToDto()).ToList(),
+                Posts = entity.Posts != null ? entity.Posts.Select(entity => entity.ToDto()).ToList() : new List<Post>(),
+                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : new List<Medium>(),
                 LogoUrl = entity.LogoUrl,
-                Tags = entity.Tags.Select(entity => entity.ToDto()).ToList()
+                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : new List<Tag>()
             };
         }
 
@@ -79,9 +80,10 @@ namespace MSiccDev.ServerlessBlog.MappingHelper
                 LastModified = entity.LastModified,
                 Published = entity.Published,
                 Slug = entity.Slug,
-                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : null,
-                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : null
+                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : new List<Tag>(),
+                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : new List<Medium>()
             };
+
 
             foreach (Medium medium in result.Media)
             {

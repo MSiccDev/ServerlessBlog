@@ -87,6 +87,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         }
 
 
+
+
+
         public static EntityModel.Post CreateFrom(this DtoModel.Post newPost)
         {
             List<PostTagMapping> postTagMappings = new List<PostTagMapping>();
@@ -97,9 +100,15 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             }
 
             List<PostMediumMapping> postMediumMappings = new List<PostMediumMapping>();
+
             foreach (DtoModel.Medium medium in newPost.Media)
             {
-                postMediumMappings.Add(new PostMediumMapping() { MediumId = medium.MediumId, PostId = newPost.PostId, AsFeatuerdOnPost = medium.IsPostImage });
+                postMediumMappings.Add(new PostMediumMapping()
+                {
+                    MediumId = medium.MediumId,
+                    PostId = newPost.PostId,
+                    AsFeatuerdOnPost = medium?.IsPostImage ?? false
+                });
             }
 
             EntityModel.Post result = new EntityModel.Post()
@@ -120,6 +129,23 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         }
 
 
+
+        public static EntityModel.Blog UpdateWith(this EntityModel.Blog existingBlog, DtoModel.Blog updatedblog)
+        {
+            if (existingBlog.BlogId != updatedblog.BlogId)
+                throw new ArgumentException("BlogId must be equal in UPDATE operation.");
+
+            if (existingBlog.Name != updatedblog.Name)
+                existingBlog.Name = updatedblog.Name;
+
+            if (existingBlog.Slogan != updatedblog.Slogan)
+                existingBlog.Slogan = existingBlog.Slogan;
+
+            if (existingBlog.LogoUrl != updatedblog.LogoUrl)
+                existingBlog.LogoUrl = existingBlog.LogoUrl;
+
+            return existingBlog;
+        }
 
         public static EntityModel.Post UpdateWith(this EntityModel.Post existingPost, DtoModel.Post updatedPost)
         {
