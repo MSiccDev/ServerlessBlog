@@ -27,7 +27,6 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         public BlogFunction(BlogContext blogContext)
         {
-
             _blogContext = blogContext ?? throw new ArgumentNullException(nameof(blogContext));
 
             _jsonSerializerSettings = new JsonSerializerSettings()
@@ -200,7 +199,6 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         }
 
-        //NOT ALLOWING DELETE ACTION ATM BECAUSE OF IMPACT
         [FunctionName($"{nameof(BlogFunctions)}_{nameof(Delete)}")]
         public async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Admin, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
         {

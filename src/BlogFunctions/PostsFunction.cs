@@ -20,7 +20,7 @@ using DtoModel;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
-    public class PostsFunction : FunctionBase
+    public class PostsFunction : BlogFunctionBase
     {
         private const string Route = "blog/{blogId}/post";
 

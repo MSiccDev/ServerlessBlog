@@ -17,7 +17,7 @@ using System.Linq;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
-    public class AuthorFunction : FunctionBase
+    public class AuthorFunction : BlogFunctionBase
     {
         private const string Route = "blog/{blogId}/author";
 
