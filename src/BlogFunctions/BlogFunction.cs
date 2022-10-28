@@ -37,6 +37,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             };
         }
 
+        //TODO: IMPLEMENT
         [FunctionName($"{nameof(BlogFunction)}_{nameof(Create)}")]
         public async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Admin, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log)
         {
@@ -94,7 +95,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                         return new NotFoundResult();
                     }
 
-                    return new OkObjectResult(JsonConvert.SerializeObject(existingBlog.ToDto(), _jsonSerializerSettings));
+                    return new OkObjectResult(JsonConvert.SerializeObject(existingBlog.ToDto(includeDetails), _jsonSerializerSettings));
 
                 }
                 else
@@ -105,41 +106,15 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     (int count, int skip) = req.GetPagingProperties();
 
-                    if (includeDetails)
-                    {
-                        entityResultSet = await _blogContext.Blogs.
-                                            Include(blog => blog.Authors).
-                                            ThenInclude(author => author.UserImage).
-                                            ThenInclude(medium => medium.MediumType).
-                                            Include(blog => blog.Media).
-                                            ThenInclude(medium => medium.MediumType).
-                                            Include(blog => blog.Tags).
-                                            Include(blog => blog.Posts).
-                                            ThenInclude(post => post.Author).
-                                            ThenInclude(author => author.UserImage).
-                                            ThenInclude(medium => medium.MediumType).
-                                            Include(blog => blog.Posts).
-                                            ThenInclude(post => post.Media).
-                                            ThenInclude(media => media.MediumType).
-                                            Include(blog => blog.Posts).
-                                            ThenInclude(post => post.Tags).
-                                            Include(blog => blog.Posts).
-                                            ThenInclude(post => post.PostTagMappings).
-                                            Include(blog => blog.Posts).
-                                            ThenInclude(post => post.PostMediumMappings).
-                                            Skip(skip).
-                                            Take(count).ToListAsync();
-                    }
-                    else
-                    {
-                        entityResultSet = await _blogContext.Blogs.
-                                              Skip(skip).
-                                              Take(count).
-                                              ToListAsync();
 
-                    }
+                    entityResultSet = await _blogContext.Blogs.
+                                          Skip(skip).
+                                          Take(count).
+                                          ToListAsync();
 
-                    List<DtoModel.Blog> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
+
+                    //always just return the plain blog list, details should be loaded per blog as they can be MASSIVE
+                    List<DtoModel.Blog> resultSet = entityResultSet.Select(entity => entity.ToDto(false)).ToList();
 
                     return new OkObjectResult(JsonConvert.SerializeObject(resultSet, _jsonSerializerSettings));
                 }
@@ -199,6 +174,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         }
 
+        //TODO: IMPLEMENT
         [FunctionName($"{nameof(BlogFunctions)}_{nameof(Delete)}")]
         public async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Admin, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
         {

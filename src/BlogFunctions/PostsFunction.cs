@@ -17,6 +17,7 @@ using MSiccDev.ServerlessBlog.MappingHelper;
 using MSiccDev.ServerlessBlog.ModelHelper;
 using MSiccDev.ServerlessBlog.EntityModel;
 using DtoModel;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
@@ -45,12 +46,12 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     EntityModel.Post newPostEntity = post.CreateFrom();
 
-                    EntityEntry<EntityModel.Post> createdPostEntity =
+                    EntityEntry<EntityModel.Post> createdPost =
                          _blogContext.Posts.Add(newPostEntity);
 
                     await _blogContext.SaveChangesAsync();
 
-                    return new CreatedResult($"/{Route}/{createdPostEntity.Entity.PostId}", "OK");
+                    return new CreatedResult($"{req.GetEncodedUrl()}/{createdPost.Entity.PostId}", "OK");
                 }
                 catch (Exception ex)
                 {

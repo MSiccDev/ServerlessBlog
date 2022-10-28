@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using MSiccDev.ServerlessBlog.MappingHelper;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
@@ -26,15 +27,63 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
         [FunctionName($"{nameof(AuthorFunction)}_{nameof(Create)}")]
-        public override Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
+        public override async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
-            return base.Create(req, log, blogId);
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+            DtoModel.Author author = JsonConvert.DeserializeObject<DtoModel.Author>(requestBody);
+
+            if (author != null)
+            {
+                try
+                {
+                    EntityModel.Author newAuthorEntity = author.ToEntity(Guid.Parse(blogId));
+
+                    EntityEntry<EntityModel.Author> createdAuthor =
+                        _blogContext.Authors.Add(newAuthorEntity);
+
+                    await _blogContext.SaveChangesAsync();
+
+                    return new CreatedResult($"{req.GetEncodedUrl()}/{createdAuthor.Entity.AuthorId}", "OK");
+                }
+                catch (Exception ex)
+                {
+                    //TODO: better handling of these cases...
+                    return new BadRequestObjectResult(ex);
+                }
+
+            }
+
+            return new BadRequestObjectResult("Submitted data is invalid, author cannot be created.");
         }
 
         [FunctionName($"{nameof(AuthorFunction)}_{nameof(Delete)}")]
-        public override Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
+        public override async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
-            return base.Delete(req, log, blogId, id);
+            try
+            {
+                EntityModel.Author existingAuthor = await _blogContext.Authors.
+                                                        Include(author => author.UserImage).
+                                                        SingleOrDefaultAsync(author => author.BlogId == Guid.Parse(blogId) &&
+                                                                                     author.AuthorId == Guid.Parse(id));
+
+                if (existingAuthor == null)
+                {
+                    log.LogWarning($"Author with Id {id} not found");
+                    return new NotFoundResult();
+                }
+
+                _blogContext.Authors.Remove(existingAuthor);
+
+                await _blogContext.SaveChangesAsync();
+
+                return new OkResult();
+            }
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
         [FunctionName($"{nameof(AuthorFunction)}_{nameof(Get)}")]

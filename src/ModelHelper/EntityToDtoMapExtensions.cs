@@ -20,18 +20,18 @@ namespace MSiccDev.ServerlessBlog.MappingHelper
             };
         }
 
-        public static DtoModel.Blog ToDto(this EntityModel.Blog entity)
+        public static DtoModel.Blog ToDto(this EntityModel.Blog entity, bool includeEmpty = true)
         {
             return new DtoModel.Blog()
             {
                 BlogId = entity.BlogId,
-                Authors = entity.Authors != null ? entity.Authors.Select(entity => entity.ToDto()).ToList() : new List<Author>(),
+                Authors = entity.Authors != null ? entity.Authors.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Author>() : null),
                 Name = entity.Name,
                 Slogan = entity.Slogan,
-                Posts = entity.Posts != null ? entity.Posts.Select(entity => entity.ToDto()).ToList() : new List<Post>(),
-                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : new List<Medium>(),
+                Posts = entity.Posts != null ? entity.Posts.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Post>() : null),
+                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Medium>() : null),
                 LogoUrl = entity.LogoUrl,
-                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : new List<Tag>()
+                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Tag>() : null)
             };
         }
 
