@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using DtoModel;
 using MSiccDev.ServerlessBlog.EntityModel;
-using MSiccDev.ServerlessBlog.MappingHelper;
 
 namespace MSiccDev.ServerlessBlog.ModelHelper
 {
@@ -210,8 +209,36 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             return existingPost;
         }
 
+        public static EntityModel.Author UpdateWith(this EntityModel.Author existingAuthor, DtoModel.Author updatedAuthor)
+        {
+            if (existingAuthor.AuthorId != updatedAuthor.AuthorId)
+                throw new ArgumentException("AuthorId must be equal in UPDATE operation.");
 
+            if (existingAuthor.DisplayName != updatedAuthor.DisplayName)
+                existingAuthor.DisplayName = updatedAuthor.DisplayName;
 
+            if (existingAuthor.UserName != updatedAuthor.UserName)
+                existingAuthor.UserName = updatedAuthor.UserName;
+
+            if (existingAuthor.UserImageId != updatedAuthor.UserImage.MediumId)
+                existingAuthor.UserImageId = updatedAuthor.UserImage.MediumId;
+
+            return existingAuthor;
+        }
+
+        public static EntityModel.Tag UpdateWith(this EntityModel.Tag existingTag, DtoModel.Tag updatedTag)
+        {
+            if (existingTag.TagId != updatedTag.TagId)
+                throw new ArgumentException("AuthorId must be equal in UPDATE operation.");
+
+            if (existingTag.Name != updatedTag.Name)
+                existingTag.Name = updatedTag.Name;
+
+            if (existingTag.Slug != updatedTag.Slug)
+                existingTag.Slug = updatedTag.Slug;
+
+            return existingTag;
+        }
     }
 }
 

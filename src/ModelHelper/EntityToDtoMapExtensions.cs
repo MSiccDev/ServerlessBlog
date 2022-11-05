@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DtoModel;
 
-namespace MSiccDev.ServerlessBlog.MappingHelper
+namespace MSiccDev.ServerlessBlog.ModelHelper
 {
     public static class EntityToDtoMapExtensions
     {

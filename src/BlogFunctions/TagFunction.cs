@@ -8,71 +8,70 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using MSiccDev.ServerlessBlog.EFCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using MSiccDev.ServerlessBlog.ModelHelper;
 using Microsoft.EntityFrameworkCore;
+using MSiccDev.ServerlessBlog.ModelHelper;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
-    public class AuthorFunction : BlogFunctionBase
+    public class TagFunction : BlogFunctionBase
     {
-        private const string Route = "blog/{blogId}/author";
+        private const string Route = "blog/{blogId}/tags";
 
-        public AuthorFunction(BlogContext blogContext) : base(blogContext)
+        public TagFunction(BlogContext blogContext) : base(blogContext)
         {
         }
 
-        [FunctionName($"{nameof(AuthorFunction)}_{nameof(Create)}")]
+        [FunctionName($"{nameof(TagFunction)}_{nameof(Create)}")]
         public override async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            DtoModel.Author author = JsonConvert.DeserializeObject<DtoModel.Author>(requestBody);
+            DtoModel.Tag tag = JsonConvert.DeserializeObject<DtoModel.Tag>(requestBody);
 
-            if (author != null)
+            if (tag != null)
             {
                 try
                 {
-                    EntityModel.Author newAuthorEntity = author.ToEntity(Guid.Parse(blogId));
+                    EntityModel.Tag newTagEntity = tag.ToEntity(Guid.Parse(blogId));
 
-                    EntityEntry<EntityModel.Author> createdAuthor =
-                        _blogContext.Authors.Add(newAuthorEntity);
+                    EntityEntry<EntityModel.Tag> createdTag =
+                        _blogContext.Tags.Add(newTagEntity);
 
                     await _blogContext.SaveChangesAsync();
 
-                    return new CreatedResult($"{req.GetEncodedUrl()}/{createdAuthor.Entity.AuthorId}", "OK");
+                    return new CreatedResult($"{req.GetEncodedUrl()}/{createdTag.Entity.TagId}", "OK");
                 }
                 catch (Exception ex)
                 {
                     //TODO: better handling of these cases...
                     return new BadRequestObjectResult(ex);
                 }
-
             }
 
             return new BadRequestObjectResult("Submitted data is invalid, author cannot be created.");
         }
 
-        [FunctionName($"{nameof(AuthorFunction)}_{nameof(Delete)}")]
+        [FunctionName($"{nameof(TagFunction)}_{nameof(Delete)}")]
         public override async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
             try
             {
-                EntityModel.Author existingAuthor = await _blogContext.Authors.
-                                                        Include(author => author.UserImage).
-                                                        SingleOrDefaultAsync(author => author.BlogId == Guid.Parse(blogId) &&
-                                                                                     author.AuthorId == Guid.Parse(id));
+                EntityModel.Tag existingTag =
+                    await _blogContext.Tags.
+                            SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
+                                                        tag.TagId == Guid.Parse(id));
 
-                if (existingAuthor == null)
+                if (existingTag == null)
                 {
-                    log.LogWarning($"Author with Id {id} not found");
+                    log.LogWarning($"Tag with Id {id} not found");
                     return new NotFoundResult();
                 }
 
-                _blogContext.Authors.Remove(existingAuthor);
+                _blogContext.Tags.Remove(existingTag);
 
                 await _blogContext.SaveChangesAsync();
 
@@ -85,48 +84,46 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
-        [FunctionName($"{nameof(AuthorFunction)}_{nameof(Get)}")]
+        [FunctionName($"{nameof(TagFunction)}_{nameof(Get)}")]
         public override async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequest req, ILogger log, string blogId, string id = null)
         {
             try
             {
                 if (!string.IsNullOrWhiteSpace(id))
                 {
-                    EntityModel.Author existingAuthor =
-                            await _blogContext.Authors.
-                                   Include(author => author.UserImage).
-                                   ThenInclude(media => media.MediumType).
-                                   SingleOrDefaultAsync(author => author.BlogId == Guid.Parse(blogId) &&
-                                                                  author.AuthorId == Guid.Parse(id));
+                    EntityModel.Tag existingTag =
+                        await _blogContext.Tags.
+                                   SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
+                                                               tag.TagId == Guid.Parse(id));
 
-                    if (existingAuthor == null)
+                    if (existingTag == null)
                     {
-                        log.LogWarning($"Author with Id {id} not found");
+                        log.LogWarning($"Tag with Id {id} not found");
                         return new NotFoundResult();
                     }
 
-                    return new OkObjectResult(JsonConvert.SerializeObject(existingAuthor.ToDto(), _jsonSerializerSettings));
+                    return new OkObjectResult(JsonConvert.SerializeObject(existingTag.ToDto(), _jsonSerializerSettings));
                 }
                 else
                 {
-                    log.LogInformation("Trying to get authors...");
+                    log.LogInformation("Trying to get tags...");
 
                     var queryParams = req.GetQueryParameterDictionary();
 
                     if (blogId == default)
                         return new BadRequestObjectResult("Required parameter 'blogid' (GUID) is not specified or cannot be parsed.");
 
-                    List<EntityModel.Author> entityResultSet = new List<EntityModel.Author>();
+                    List<EntityModel.Tag> entityResultSet = new List<EntityModel.Tag>();
 
                     (int count, int skip) = req.GetPagingProperties();
 
-                    entityResultSet = await _blogContext.Authors.
+                    entityResultSet = await _blogContext.Tags.
                                             Where(author => author.BlogId == Guid.Parse(blogId)).
                                             Skip(skip).
                                             Take(count).
                                             ToListAsync();
 
-                    List<DtoModel.Author> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
+                    List<DtoModel.Tag> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
 
                     return new OkObjectResult(JsonConvert.SerializeObject(resultSet, _jsonSerializerSettings));
                 }
@@ -138,33 +135,28 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
-
-
-        [FunctionName($"{nameof(AuthorFunction)}_{nameof(Update)}")]
+        [FunctionName($"{nameof(TagFunction)}_{nameof(Update)}")]
         public override async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-            DtoModel.Author author = JsonConvert.DeserializeObject<DtoModel.Author>(requestBody);
+            DtoModel.Tag tag = JsonConvert.DeserializeObject<DtoModel.Tag>(requestBody);
 
-            if (author != null)
+            if (tag != null)
             {
                 try
                 {
-                    EntityModel.Author existingAuthor =
-                            await _blogContext.Authors.
-                                   Include(author => author.UserImage).
-                                   ThenInclude(media => media.MediumType).
-                                   SingleOrDefaultAsync(author => author.BlogId == Guid.Parse(blogId) &&
-                                                                  author.AuthorId == Guid.Parse(id));
-
-                    if (existingAuthor == null)
+                    EntityModel.Tag existingTag =
+                        await _blogContext.Tags.
+                                SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
+                                                            tag.TagId == Guid.Parse(id));
+                    if (existingTag == null)
                     {
-                        log.LogWarning($"Author with Id {id} not found");
+                        log.LogWarning($"Tag with Id {id} not found");
                         return new NotFoundResult();
                     }
 
-                    existingAuthor.UpdateWith(author);
+                    existingTag.UpdateWith(tag);
 
                     await _blogContext.SaveChangesAsync();
 
