@@ -239,6 +239,26 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
 
             return existingTag;
         }
+
+        public static EntityModel.Medium UpdateWith(this EntityModel.Medium existingMedium, DtoModel.Medium updatedMedium)
+        {
+            if (existingMedium.MediumId != updatedMedium.MediumId)
+                throw new ArgumentException("MediumId must be equal in UPDATE operation.");
+
+            if (existingMedium.AlternativeText != updatedMedium.AlternativeText)
+                existingMedium.AlternativeText = updatedMedium.AlternativeText;
+
+            if (existingMedium.Description != updatedMedium.Description)
+                existingMedium.Description = updatedMedium.Description;
+
+            if (existingMedium.MediumTypeId != updatedMedium.MediumType.MediaTypeId)
+                existingMedium.MediumTypeId = updatedMedium.MediumType.MediaTypeId;
+
+            if (existingMedium.MediumUrl != updatedMedium.MediumUrl)
+                existingMedium.MediumUrl = updatedMedium.MediumUrl;
+
+            return existingMedium;
+        }
     }
 }
 

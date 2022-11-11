@@ -169,7 +169,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 }
             }
 
-            return new BadRequestObjectResult("Submitted data is invalid, post cannot be modified.");
+            return new BadRequestObjectResult("Submitted data is invalid, tag cannot be modified.");
         }
     }
 }
