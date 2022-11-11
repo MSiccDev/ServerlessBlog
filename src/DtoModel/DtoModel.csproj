@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <RootNamespace>MSiccDev.ServerlessBlog.Model</RootNamespace>
-    <SynchReleaseVersion>false</SynchReleaseVersion>
+    <RootNamespace>MSiccDev.ServerlessBlog.DtoModel</RootNamespace>
   </PropertyGroup>
 
 </Project>
