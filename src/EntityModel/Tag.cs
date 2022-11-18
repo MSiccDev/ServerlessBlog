@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MSiccDev.ServerlessBlog.EntityModel
 {
-    public class Tag : IEquatable<Tag>
+    public class Tag
     {
         public Guid TagId { get; set; }
 
@@ -18,28 +18,5 @@ namespace MSiccDev.ServerlessBlog.EntityModel
 
         public List<PostTagMapping> PostTagMappings { get; set; }
 
-        public bool Equals(Tag other)
-        {
-            if (other == null)
-                return false;
-
-            return
-                this.TagId == other.TagId &&
-                this.Name == other.Name &&
-                this.Slug == other.Slug;
-        }
-
-        public override bool Equals(object obj)
-            => obj is Tag other && Equals(other);
-
-        public static bool operator ==(in Tag self, in Tag other)
-            => Equals(self, other);
-
-        public static bool operator !=(in Tag self, in Tag other)
-            => !Equals(self, other);
-
-
-        public override int GetHashCode() =>
-            HashCode.Combine(this.TagId, this.Name, this.Slug);
     }
 }
