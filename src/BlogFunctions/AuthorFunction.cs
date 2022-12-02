@@ -28,15 +28,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         [FunctionName($"{nameof(AuthorFunction)}_{nameof(Create)}")]
         public override async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-
-            DtoModel.Author author = JsonConvert.DeserializeObject<DtoModel.Author>(requestBody);
-
-            if (author != null)
+            try
             {
-                try
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+                DtoModel.Author author = JsonConvert.DeserializeObject<DtoModel.Author>(requestBody);
+
+                if (author != null)
                 {
-                    EntityModel.Author newAuthorEntity = author.ToEntity(Guid.Parse(blogId));
+
+                    EntityModel.Author newAuthorEntity = author.CreateFrom(Guid.Parse(blogId));
 
                     EntityEntry<EntityModel.Author> createdAuthor =
                         _blogContext.Authors.Add(newAuthorEntity);
@@ -45,15 +46,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     return new CreatedResult($"{req.GetEncodedUrl()}/{createdAuthor.Entity.AuthorId}", "OK");
                 }
-                catch (Exception ex)
+                else
                 {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
+                    return new BadRequestObjectResult("Submitted data is invalid, author cannot be created.");
                 }
-
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, author cannot be created.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
         [FunctionName($"{nameof(AuthorFunction)}_{nameof(Delete)}")]
@@ -138,18 +140,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
-
-
         [FunctionName($"{nameof(AuthorFunction)}_{nameof(Update)}")]
         public override async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-
-            DtoModel.Author author = JsonConvert.DeserializeObject<DtoModel.Author>(requestBody);
-
-            if (author != null)
+            try
             {
-                try
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+                DtoModel.Author author = JsonConvert.DeserializeObject<DtoModel.Author>(requestBody);
+
+                if (author != null)
                 {
                     EntityModel.Author existingAuthor =
                             await _blogContext.Authors.
@@ -170,15 +170,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     return new AcceptedResult();
                 }
-                catch (Exception ex)
+                else
                 {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
+                    return new BadRequestObjectResult("Submitted data is invalid, author cannot be modified.");
                 }
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, author cannot be modified.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
+
+
     }
 }
 

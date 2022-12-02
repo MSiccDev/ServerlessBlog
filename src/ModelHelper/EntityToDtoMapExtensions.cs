@@ -51,7 +51,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new DtoModel.MediumType()
             {
-                MediaTypeId = entity.MediumTypeId,
+                MediumTypeId = entity.MediumTypeId,
                 MimeType = entity.MimeType,
                 Name = entity.Name,
                 Encoding = entity.Encoding

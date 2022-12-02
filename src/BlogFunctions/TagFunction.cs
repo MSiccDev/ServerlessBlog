@@ -28,15 +28,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         [FunctionName($"{nameof(TagFunction)}_{nameof(Create)}")]
         public override async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            try
+            {
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
             DtoModel.Tag tag = JsonConvert.DeserializeObject<DtoModel.Tag>(requestBody);
 
-            if (tag != null)
-            {
-                try
+                if (tag != null)
                 {
-                    EntityModel.Tag newTagEntity = tag.ToEntity(Guid.Parse(blogId));
+                    EntityModel.Tag newTagEntity = tag.CreateFrom(Guid.Parse(blogId));
 
                     EntityEntry<EntityModel.Tag> createdTag =
                         _blogContext.Tags.Add(newTagEntity);
@@ -45,14 +46,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     return new CreatedResult($"{req.GetEncodedUrl()}/{createdTag.Entity.TagId}", "OK");
                 }
-                catch (Exception ex)
+                else
                 {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
+                    return new BadRequestObjectResult("Submitted data is invalid, author cannot be created.");
                 }
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, author cannot be created.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
         [FunctionName($"{nameof(TagFunction)}_{nameof(Delete)}")]
@@ -138,13 +141,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         [FunctionName($"{nameof(TagFunction)}_{nameof(Update)}")]
         public override async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            try
+            {
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
             DtoModel.Tag tag = JsonConvert.DeserializeObject<DtoModel.Tag>(requestBody);
 
-            if (tag != null)
-            {
-                try
+                if (tag != null)
                 {
                     EntityModel.Tag existingTag =
                         await _blogContext.Tags.
@@ -162,15 +166,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     return new AcceptedResult();
                 }
-                catch (Exception ex)
+                else
                 {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
+                    return new BadRequestObjectResult("Submitted data is invalid, tag cannot be modified.");
                 }
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, tag cannot be modified.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
+
+
     }
 }
 

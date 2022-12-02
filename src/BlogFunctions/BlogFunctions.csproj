@@ -37,13 +37,10 @@
 	  <ProjectReference Include="..\EFCore\EFCore.csproj">
 	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
 	  </ProjectReference>
-	  <ProjectReference Include="..\MappingHelper\ModelHelper.csproj">
+	  <ProjectReference Include="..\EntityModel\EntityModel.csproj">
 	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
 	  </ProjectReference>
 	  <ProjectReference Include="..\ModelHelper\ModelHelper.csproj">
-	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
-	  </ProjectReference>
-	  <ProjectReference Include="..\EntityModel\EntityModel.csproj">
 	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
 	  </ProjectReference>
 	</ItemGroup>

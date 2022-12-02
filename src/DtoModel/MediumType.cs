@@ -4,7 +4,7 @@ namespace DtoModel
 {
     public class MediumType
     {
-        public Guid MediaTypeId { get; set; }
+        public Guid MediumTypeId { get; set; }
 
         public string MimeType { get; set; }
 

@@ -8,86 +8,17 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
 {
     public static class DtoToEntityMapExtensions
     {
-        public static EntityModel.Author ToEntity(this DtoModel.Author dto, Guid blogId)
-        {
-            return new EntityModel.Author()
-            {
-                BlogId = blogId,
-                AuthorId = dto.AuthorId,
-                DisplayName = dto.DisplayName,
-                UserName = dto.UserName,
-            };
-        }
 
-        public static EntityModel.Blog ToEntity(this DtoModel.Blog dto)
+        public static EntityModel.Blog CreateFrom(this DtoModel.Blog newBlog)
         {
             return new EntityModel.Blog()
             {
-                BlogId = dto.BlogId,
-                Authors = dto.Authors.Select(author => author.ToEntity(dto.BlogId)).ToList(),
-                Name = dto.Name,
-                Slogan = dto.Slogan,
-                Posts = dto.Posts.Select(post => post.ToEntity()).ToList(),
-                Media = dto.Media.Select(media => media.ToEntity(dto.BlogId)).ToList(),
-                LogoUrl = dto.LogoUrl,
-                Tags = dto.Tags.Select(tag => tag.ToEntity(dto.BlogId)).ToList()
+                BlogId = newBlog.BlogId == default ? Guid.NewGuid() : newBlog.BlogId,
+                Name = newBlog.Name,
+                Slogan = newBlog.Slogan,
+                LogoUrl = newBlog.LogoUrl
             };
         }
-
-        public static EntityModel.Medium ToEntity(this DtoModel.Medium dto, Guid blogId)
-        {
-            return new EntityModel.Medium()
-            {
-                BlogId = blogId,
-                MediumId = dto.MediumId,
-                MediumTypeId = dto.MediumType?.MediaTypeId ?? default,
-                MediumUrl = dto.MediumUrl,
-                AlternativeText = dto.AlternativeText,
-                Description = dto.Description,
-            };
-        }
-
-        public static EntityModel.MediumType ToEntity(this DtoModel.MediumType dto)
-        {
-            return new EntityModel.MediumType()
-            {
-                MediumTypeId = dto.MediaTypeId,
-                MimeType = dto.MimeType,
-                Name = dto.Name,
-                Encoding = dto.Encoding
-            };
-        }
-
-        public static EntityModel.Tag ToEntity(this DtoModel.Tag dto, Guid blogId)
-        {
-            return new EntityModel.Tag()
-            {
-                TagId = dto.TagId,
-                Name = dto.Name,
-                Slug = dto.Slug,
-                BlogId = blogId
-            };
-        }
-
-        public static EntityModel.Post ToEntity(this DtoModel.Post dto)
-        {
-            return new EntityModel.Post()
-            {
-                PostId = dto.PostId,
-                BlogId = dto.BlogId,
-                AuthorId = dto.Author?.AuthorId ?? default,
-                Title = dto.Title,
-                Content = dto.Content,
-                LastModified = dto.LastModified,
-                Published = dto.Published,
-                Slug = dto.Slug,
-                Tags = dto.Tags != null ? dto.Tags.Select(tagDto => tagDto.ToEntity(dto.BlogId)).ToList() : null
-            };
-        }
-
-
-
-
 
         public static EntityModel.Post CreateFrom(this DtoModel.Post newPost)
         {
@@ -125,6 +56,53 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             };
 
             return result;
+        }
+
+        public static EntityModel.Author CreateFrom(this DtoModel.Author dto, Guid blogId)
+        {
+            return new EntityModel.Author()
+            {
+                BlogId = blogId,
+                AuthorId = dto.AuthorId,
+                DisplayName = dto.DisplayName,
+                UserName = dto.UserName,
+                UserImageId = dto.UserImage?.MediumId
+            };
+        }
+
+        public static EntityModel.Medium CreateFrom(this DtoModel.Medium dto, Guid blogId)
+        {
+            return new EntityModel.Medium()
+            {
+                BlogId = blogId,
+                MediumId = dto.MediumId,
+                MediumTypeId = dto.MediumType?.MediumTypeId ?? default,
+                MediumUrl = dto.MediumUrl,
+                AlternativeText = dto.AlternativeText,
+                Description = dto.Description,
+            };
+        }
+
+        public static EntityModel.MediumType CreateFrom(this DtoModel.MediumType dto)
+        {
+            return new EntityModel.MediumType()
+            {
+                MediumTypeId = dto.MediumTypeId,
+                Encoding = dto.Encoding,
+                MimeType = dto.MimeType,
+                Name = dto.Name
+            };
+        }
+
+        public static EntityModel.Tag CreateFrom(this DtoModel.Tag dto, Guid blogId)
+        {
+            return new EntityModel.Tag()
+            {
+                TagId = dto.TagId,
+                Name = dto.Name,
+                Slug = dto.Slug,
+                BlogId = blogId
+            };
         }
 
 
@@ -196,7 +174,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             {
                 foreach (Guid id in newDeliveredTagIds)
                 {
-                    EntityModel.Tag tagToAdd = updatedPost.Tags.SingleOrDefault(tag => tag.TagId == id).ToEntity(existingPost.BlogId);
+                    EntityModel.Tag tagToAdd = updatedPost.Tags.SingleOrDefault(tag => tag.TagId == id).CreateFrom(existingPost.BlogId);
                     existingPost.Tags.Add(tagToAdd);
                 }
 
@@ -229,7 +207,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         public static EntityModel.Tag UpdateWith(this EntityModel.Tag existingTag, DtoModel.Tag updatedTag)
         {
             if (existingTag.TagId != updatedTag.TagId)
-                throw new ArgumentException("AuthorId must be equal in UPDATE operation.");
+                throw new ArgumentException("TagId must be equal in UPDATE operation.");
 
             if (existingTag.Name != updatedTag.Name)
                 existingTag.Name = updatedTag.Name;
@@ -251,14 +229,32 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             if (existingMedium.Description != updatedMedium.Description)
                 existingMedium.Description = updatedMedium.Description;
 
-            if (existingMedium.MediumTypeId != updatedMedium.MediumType.MediaTypeId)
-                existingMedium.MediumTypeId = updatedMedium.MediumType.MediaTypeId;
+            if (existingMedium.MediumTypeId != updatedMedium.MediumType.MediumTypeId)
+                existingMedium.MediumTypeId = updatedMedium.MediumType.MediumTypeId;
 
             if (existingMedium.MediumUrl != updatedMedium.MediumUrl)
                 existingMedium.MediumUrl = updatedMedium.MediumUrl;
 
             return existingMedium;
         }
+
+        public static EntityModel.MediumType UpdateWith(this EntityModel.MediumType existingMediumType, DtoModel.MediumType updatedMediumType)
+        {
+            if (existingMediumType.MediumTypeId != updatedMediumType.MediumTypeId)
+                throw new ArgumentException("MediumId must be equal in UPDATE operation.");
+
+            if (existingMediumType.Name != updatedMediumType.Name)
+                existingMediumType.Name = updatedMediumType.Name;
+
+            if (existingMediumType.MimeType != updatedMediumType.MimeType)
+                existingMediumType.MimeType = updatedMediumType.MimeType;
+
+            if (existingMediumType.Encoding != updatedMediumType.Encoding)
+                existingMediumType.Encoding = updatedMediumType.Encoding;
+
+            return existingMediumType;
+        }
+
     }
 }
 
