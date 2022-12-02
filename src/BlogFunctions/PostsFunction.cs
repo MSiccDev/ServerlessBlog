@@ -8,14 +8,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using MSiccDev.ServerlessBlog.EFCore;
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using MSiccDev.ServerlessBlog.ModelHelper;
-using MSiccDev.ServerlessBlog.EntityModel;
-using DtoModel;
 using Microsoft.AspNetCore.Http.Extensions;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
@@ -32,14 +29,15 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         public override async Task<IActionResult> Create(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-
-            DtoModel.Post post = JsonConvert.DeserializeObject<DtoModel.Post>(requestBody);
-
-            if (post != null)
+            try
             {
-                try
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+                DtoModel.Post post = JsonConvert.DeserializeObject<DtoModel.Post>(requestBody);
+
+                if (post != null)
                 {
+
                     if (post.BlogId != Guid.Parse(blogId))
                         return new BadRequestObjectResult($"Cannot create a post on a different blog.");
 
@@ -51,15 +49,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     await _blogContext.SaveChangesAsync();
 
                     return new CreatedResult($"{req.GetEncodedUrl()}/{createdPost.Entity.PostId}", "OK");
+
                 }
-                catch (Exception ex)
+                else
                 {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
+
+                    return new BadRequestObjectResult("Submitted data is invalid, post cannot be created.");
                 }
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, post cannot be created.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
 
@@ -162,13 +164,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         public override async Task<IActionResult> Update(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            try
+            {
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
             DtoModel.Post post = JsonConvert.DeserializeObject<DtoModel.Post>(requestBody);
 
-            if (post != null)
-            {
-                try
+                if (post != null)
                 {
                     var existingPost = await _blogContext.Posts.
                                               Include(post => post.Tags).
@@ -195,14 +198,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     return new AcceptedResult();
                 }
-                catch (Exception ex)
+                else
                 {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
+                    return new BadRequestObjectResult("Submitted data is invalid, post cannot be modified.");
                 }
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, post cannot be modified.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
 

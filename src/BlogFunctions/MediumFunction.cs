@@ -18,26 +18,27 @@ using System.Linq;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
-    public class MediaFunction : BlogFunctionBase
+    public class MediumFunction : BlogFunctionBase
     {
         private const string Route = "blog/{blogId}/media";
 
-        public MediaFunction(BlogContext blogContext) : base(blogContext)
+        public MediumFunction(BlogContext blogContext) : base(blogContext)
         {
         }
 
-        [FunctionName($"{nameof(MediaFunction)}_{nameof(Create)}")]
+        [FunctionName($"{nameof(MediumFunction)}_{nameof(Create)}")]
         public override async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-
-            DtoModel.Medium medium = JsonConvert.DeserializeObject<DtoModel.Medium>(requestBody);
-
-            if (medium != null)
+            try
             {
-                try
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+                DtoModel.Medium medium = JsonConvert.DeserializeObject<DtoModel.Medium>(requestBody);
+
+                if (medium != null)
                 {
-                    EntityModel.Medium newMedium = medium.ToEntity(Guid.Parse(blogId));
+                    EntityModel.Medium newMedium = medium.CreateFrom(Guid.Parse(blogId));
 
                     EntityEntry<EntityModel.Medium> createdMedium =
                         _blogContext.Media.Add(newMedium);
@@ -45,19 +46,21 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     await _blogContext.SaveChangesAsync();
 
                     return new CreatedResult($"{req.GetEncodedUrl()}/{createdMedium.Entity.MediumId}", "OK");
-                }
-                catch (Exception ex)
-                {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
-                }
 
+
+                }
+                else {
+                    return new BadRequestObjectResult("Submitted data is invalid, media cannot be created.");
+                }
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, author cannot be created.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
-        [FunctionName($"{nameof(MediaFunction)}_{nameof(Delete)}")]
+        [FunctionName($"{nameof(MediumFunction)}_{nameof(Delete)}")]
         public override async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
             try
@@ -86,7 +89,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
-        [FunctionName($"{nameof(MediaFunction)}_{nameof(Get)}")]
+        [FunctionName($"{nameof(MediumFunction)}_{nameof(Get)}")]
         public override async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequest req, ILogger log, string blogId, string id = null)
         {
             try
@@ -101,7 +104,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     if (extitingMedium == null)
                     {
-                        log.LogWarning($"Author with Id {id} not found");
+                        log.LogWarning($"Medium with Id {id} not found");
                         return new NotFoundResult();
                     }
 
@@ -109,7 +112,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 }
                 else
                 {
-                    log.LogInformation("Trying to get authors...");
+                    log.LogInformation("Trying to get media...");
 
                     var queryParams = req.GetQueryParameterDictionary();
 
@@ -140,16 +143,17 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         }
 
-        [FunctionName($"{nameof(MediaFunction)}_{nameof(Update)}")]
+        [FunctionName($"{nameof(MediumFunction)}_{nameof(Update)}")]
         public override async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            try
+            {
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
             DtoModel.Medium medium = JsonConvert.DeserializeObject<DtoModel.Medium>(requestBody);
 
-            if (medium != null)
-            {
-                try
+                if (medium != null)
                 {
                     EntityModel.Medium existingMedium =
                             await _blogContext.Media.
@@ -159,7 +163,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     if (existingMedium == null)
                     {
-                        log.LogWarning($"Author with Id {id} not found");
+                        log.LogWarning($"Mediumt with Id {id} not found");
                         return new NotFoundResult();
                     }
 
@@ -168,16 +172,22 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     await _blogContext.SaveChangesAsync();
 
                     return new AcceptedResult();
+
                 }
-                catch (Exception ex)
+                else
                 {
-                    //TODO: better handling of these cases...
-                    return new BadRequestObjectResult(ex);
+
+                    return new BadRequestObjectResult("Submitted data is invalid, medium cannot be modified.");
                 }
             }
-
-            return new BadRequestObjectResult("Submitted data is invalid, medium cannot be modified.");
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
+
+
     }
 }
 

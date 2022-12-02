@@ -12,12 +12,13 @@ namespace MSiccDev.ServerlessBlog.EntityModel
 
         public string UserName { get; set; }
 
-        public Medium UserImage { get; set; }
         public Guid? UserImageId { get; set; }
 
-        public Blog Blog { get; set; }
         public Guid BlogId { get; set; }
 
+
+        public Blog Blog { get; set; }
+        public Medium UserImage { get; set; }
         public ICollection<Post> Posts { get; set; }
 
 

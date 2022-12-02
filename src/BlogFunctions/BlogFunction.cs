@@ -14,6 +14,9 @@ using System.Linq;
 using DtoModel;
 using System.Net;
 using MSiccDev.ServerlessBlog.ModelHelper;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using MSiccDev.ServerlessBlog.EntityModel;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
@@ -36,11 +39,33 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             };
         }
 
-        //TODO: IMPLEMENT
         [FunctionName($"{nameof(BlogFunction)}_{nameof(Create)}")]
         public async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Admin, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log)
         {
-            return new StatusCodeResult((int)HttpStatusCode.MethodNotAllowed);
+            try
+            {
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                DtoModel.Blog newBlog = JsonConvert.DeserializeObject<DtoModel.Blog>(requestBody, _jsonSerializerSettings);
+
+                if (newBlog != null)
+                {
+                    //create just the empty blog
+                    EntityEntry<EntityModel.Blog> createdBlog = _blogContext.Add(newBlog.CreateFrom());
+
+                    await _blogContext.SaveChangesAsync();
+
+                    return new CreatedResult($"{req.GetEncodedUrl()}/{createdBlog.Entity.BlogId}", "OK");
+                }
+                else
+                {
+                    return new BadRequestObjectResult("Submitted data is invalid, blog cannot be created.");
+                }
+            }
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
         [FunctionName($"{nameof(BlogFunction)}_{nameof(Get)}")]
@@ -124,7 +149,6 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 //TODO: better handling of these cases...
                 return new BadRequestObjectResult(ex);
             }
-
         }
 
         [FunctionName($"{nameof(BlogFunction)}_{nameof(Update)}")]
@@ -162,6 +186,10 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                         return new BadRequestObjectResult(ex);
                     }
                 }
+                else
+                {
+                    return new BadRequestObjectResult("Submitted data is invalid, blog cannot be modified.");
+                }
             }
             catch (Exception ex)
             {
@@ -169,15 +197,52 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 return new BadRequestObjectResult(ex);
             }
 
-            return new BadRequestObjectResult("Submitted data is invalid, blog cannot be modified.");
 
         }
 
-        //TODO: IMPLEMENT
         [FunctionName($"{nameof(BlogFunctions)}_{nameof(Delete)}")]
         public async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Admin, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
         {
-            return new StatusCodeResult((int)HttpStatusCode.MethodNotAllowed);
+            try
+            {
+                EntityModel.Blog existingBlog = await _blogContext.Blogs.
+                                                    Include(blog => blog.Authors).
+                                                    ThenInclude(author => author.UserImage).
+                                                    ThenInclude(medium => medium.MediumType).
+                                                    Include(blog => blog.Media).
+                                                    ThenInclude(medium => medium.MediumType).
+                                                    Include(blog => blog.Tags).
+                                                    Include(blog => blog.Posts).
+                                                    ThenInclude(post => post.Author).
+                                                    ThenInclude(author => author.UserImage).
+                                                    ThenInclude(medium => medium.MediumType).
+                                                    Include(blog => blog.Posts).
+                                                    ThenInclude(post => post.Media).
+                                                    ThenInclude(media => media.MediumType).
+                                                    Include(blog => blog.Posts).
+                                                    ThenInclude(post => post.Tags).
+                                                    Include(blog => blog.Posts).
+                                                    ThenInclude(post => post.PostTagMappings).
+                                                    Include(blog => blog.Posts).
+                                                    ThenInclude(post => post.PostMediumMappings).
+                                                    SingleOrDefaultAsync(blog => blog.BlogId == Guid.Parse(id));
+
+                if (existingBlog == null)
+                {
+                    log.LogWarning($"Post with Id {id} not found");
+                    return new NotFoundResult();
+                }
+
+                _blogContext.Blogs.Remove(existingBlog);
+                await _blogContext.SaveChangesAsync();
+
+                return new OkResult();
+            }
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return new BadRequestObjectResult(ex);
+            }
         }
 
     }
