@@ -26,7 +26,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
         [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Create)}")]
-        public async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log)
+        public override async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
         [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Delete)}")]
-        public async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
+        public override async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
         [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Get)}")]
-        public async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequest req, ILogger log, string id = null)
+        public override async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequest req, ILogger log, string blogId, string id = null)
         {
             try
             {
@@ -135,7 +135,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Update)}")]
-        public async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
+        public override async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
         {
             try
             {
