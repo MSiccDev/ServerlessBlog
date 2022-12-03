@@ -17,7 +17,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         public override void Configure(IFunctionsHostBuilder builder)
         {
             FunctionsHostBuilderContext functionContext = builder.GetContext();
-            string connectionString = functionContext.Configuration["Database:ConnectionString"];
+            string connectionString = functionContext.Configuration.GetConnectionString("SqlConnectionString");
 
             builder.Services.AddDbContext<BlogContext>(options =>
                     SqlServerDbContextOptionsExtensions.UseSqlServer(options, connectionString));
