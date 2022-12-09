@@ -10,7 +10,7 @@ namespace MSiccDev.ServerlessBlog.EFCore.DesignDummy
         {
             BlogContext? instance = null;
 
-            var optionsBuilder = new DbContextOptionsBuilder<BlogContext>();
+            DbContextOptionsBuilder<BlogContext> optionsBuilder = new DbContextOptionsBuilder<BlogContext>();
 
             optionsBuilder.UseSqlServer(dbContextBuilder =>
                 dbContextBuilder.MigrationsAssembly("EFCore.DesignDummy")).

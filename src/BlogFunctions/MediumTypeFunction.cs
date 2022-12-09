@@ -1,19 +1,17 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using MSiccDev.ServerlessBlog.EFCore;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using MSiccDev.ServerlessBlog.ModelHelper;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using System.Net;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
@@ -21,18 +19,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
     {
         private const string Route = "blog/{blogId}/mediumtype";
 
-        public MediumTypeFunction(BlogContext blogContext) : base(blogContext)
+        public MediumTypeFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext)
         {
+            _logger = loggerFactory.CreateLogger<MediumTypeFunction>();
         }
 
-        [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Create)}")]
-        public override async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log, string blogId)
+        [Function($"{nameof(MediumTypeFunction)}_{nameof(Create)}")]
+        public override async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequestData req, string blogId)
         {
             try
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                DtoModel.MediumType mediumType = JsonConvert.DeserializeObject<DtoModel.MediumType>(requestBody);
+                DtoModel.MediumType? mediumType = JsonConvert.DeserializeObject<DtoModel.MediumType>(requestBody);
 
                 if (mediumType != null)
                 {
@@ -43,72 +42,72 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     await _blogContext.SaveChangesAsync();
 
-                    return new CreatedResult($"{req.GetEncodedUrl()}/{createdMediumType.Entity.MediumTypeId}", "OK");
+                    return await req.CreateNewEntityCreatedResponseDataAsync(createdMediumType.Entity.MediumTypeId);
 
 
                 }
                 else
                 {
-                    return new BadRequestObjectResult("Submitted data is invalid, medium type cannot be created.");
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest,"Submitted data is invalid, medium type cannot be created.");
                 }
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
         }
 
-        [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Delete)}")]
-        public override async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
+        [Function($"{nameof(MediumTypeFunction)}_{nameof(Delete)}")]
+        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
-                EntityModel.MediumType existingMediumType =
+                EntityModel.MediumType? existingMediumType =
                     await _blogContext.MediaTypes.
                         SingleOrDefaultAsync(mediumType => mediumType.MediumTypeId == Guid.Parse(id));
 
                 if (existingMediumType == null)
                 {
-                    log.LogWarning($"MediumType with Id {id} not found");
-                    return new NotFoundResult();
+                    _logger.LogWarning($"MediumType with Id {id} not found");
+                    return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
                 _blogContext.MediaTypes.Remove(existingMediumType);
 
                 await _blogContext.SaveChangesAsync();
 
-                return new OkResult();
+                return req.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
         }
 
-        [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Get)}")]
-        public override async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequest req, ILogger log, string blogId, string id = null)
+        [Function($"{nameof(MediumTypeFunction)}_{nameof(Get)}")]
+        public override async Task<HttpResponseData> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequestData req, string blogId, string? id = null)
         {
             try
             {
                 if (!string.IsNullOrWhiteSpace(id))
                 {
-                    EntityModel.MediumType extitingMediumType =
+                    EntityModel.MediumType? extitingMediumType =
                             await _blogContext.MediaTypes.
                                    SingleOrDefaultAsync(mediumType => mediumType.MediumTypeId == Guid.Parse(id));
 
                     if (extitingMediumType == null)
                     {
-                        log.LogWarning($"MediumType with Id {id} not found");
-                        return new NotFoundResult();
+                        _logger.LogWarning($"MediumType with Id {id} not found");
+                        return req.CreateResponse(HttpStatusCode.NotFound);
                     }
 
-                    return new OkObjectResult(JsonConvert.SerializeObject(extitingMediumType.ToDto(), _jsonSerializerSettings));
+                    return await req.CreateOKResponseDataWithJsonAsync(extitingMediumType.ToDto());
                 }
                 else
                 {
-                    log.LogInformation("Trying to get MediaTypes...");
+                    _logger.LogInformation("Trying to get MediaTypes...");
 
                     var queryParams = req.GetQueryParameterDictionary();
 
@@ -123,55 +122,54 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     List<DtoModel.MediumType> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
 
-                    return new OkObjectResult(JsonConvert.SerializeObject(resultSet, _jsonSerializerSettings));
+                    return await req.CreateOKResponseDataWithJsonAsync(resultSet);
                 }
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
         }
 
 
-        [FunctionName($"{nameof(MediumTypeFunction)}_{nameof(Update)}")]
-        public override async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string blogId, string id)
+        [Function($"{nameof(MediumTypeFunction)}_{nameof(Update)}")]
+        public override async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                DtoModel.MediumType mediumType = JsonConvert.DeserializeObject<DtoModel.MediumType>(requestBody);
+                DtoModel.MediumType? mediumType = JsonConvert.DeserializeObject<DtoModel.MediumType>(requestBody);
 
                 if (mediumType != null)
                 {
-                    EntityModel.MediumType existingMediumType =
+                    EntityModel.MediumType? existingMediumType =
                             await _blogContext.MediaTypes.
                                    SingleOrDefaultAsync(mediumtype => mediumtype.MediumTypeId == Guid.Parse(id));
 
                     if (existingMediumType == null)
                     {
-                        log.LogWarning($"MediumType with Id {id} not found");
-                        return new NotFoundResult();
+                        _logger.LogWarning($"MediumType with Id {id} not found");
+                        return req.CreateResponse(HttpStatusCode.NotFound);
                     }
 
                     existingMediumType.UpdateWith(mediumType);
 
                     await _blogContext.SaveChangesAsync();
 
-                    return new AcceptedResult();
-
+                    return req.CreateResponse(HttpStatusCode.Accepted);
                 }
                 else
                 {
 
-                    return new BadRequestObjectResult("Submitted data is invalid, MediumType cannot be modified.");
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest,"Submitted data is invalid, MediumType cannot be modified.");
                 }
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
         }
 
