@@ -356,3 +356,7 @@ src/nuget.config
 src/EFCore.DesignDummy/Migrations/*
 #adding this to keep the Migrations folder
 !src/EFCore.DesignDummy/Migrations/.gitkeep
+
+#jetbrains rider is doing some stunts here...
+#.idea
+src/.idea/*
