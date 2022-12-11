@@ -7,7 +7,6 @@ using MSiccDev.ServerlessBlog.EFCore;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using DtoModel;
 using System.Net;
 using MSiccDev.ServerlessBlog.ModelHelper;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
