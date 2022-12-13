@@ -1,51 +1,41 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using MSiccDev.ServerlessBlog.EFCore;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using DtoModel;
 using System.Net;
 using MSiccDev.ServerlessBlog.ModelHelper;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using MSiccDev.ServerlessBlog.EntityModel;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public class BlogFunction
     {
         private const string Route = "blog";
-        internal readonly BlogContext _blogContext;
+        private readonly ILogger _logger;
+        private readonly BlogContext _blogContext;
 
-        internal readonly JsonSerializerSettings _jsonSerializerSettings;
-
-        public BlogFunction(BlogContext blogContext)
+        public BlogFunction(BlogContext blogContext, ILoggerFactory loggerFactory)
         {
+            _logger = loggerFactory.CreateLogger<BlogFunction>();
             _blogContext = blogContext ?? throw new ArgumentNullException(nameof(blogContext));
-
-            _jsonSerializerSettings = new JsonSerializerSettings()
-            {
-                Formatting = Formatting.Indented,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            };
         }
 
-        [FunctionName($"{nameof(BlogFunction)}_{nameof(Create)}")]
-        public async Task<IActionResult> Create([HttpTrigger(AuthorizationLevel.Admin, new[] { "post" }, Route = Route)] HttpRequest req, ILogger log)
+        [Function($"{nameof(BlogFunction)}_{nameof(Create)}")]
+        public async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Admin, new[] { "post" }, Route = Route)] HttpRequestData req)
         {
             try
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                DtoModel.Blog newBlog = JsonConvert.DeserializeObject<DtoModel.Blog>(requestBody, _jsonSerializerSettings);
+
+                DtoModel.Blog? newBlog = JsonConvert.DeserializeObject<DtoModel.Blog>(requestBody);
 
                 if (newBlog != null)
                 {
@@ -54,35 +44,35 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     await _blogContext.SaveChangesAsync();
 
-                    return new CreatedResult($"{req.GetEncodedUrl()}/{createdBlog.Entity.BlogId}", "OK");
+                    return await req.CreateNewEntityCreatedResponseDataAsync(createdBlog.Entity.BlogId);
                 }
                 else
                 {
-                    return new BadRequestObjectResult("Submitted data is invalid, blog cannot be created.");
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, blog cannot be created.");
                 }
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
         }
 
-        [FunctionName($"{nameof(BlogFunction)}_{nameof(Get)}")]
-        public async Task<IActionResult> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequest req, ILogger log, string id = null)
+        [Function($"{nameof(BlogFunction)}_{nameof(Get)}")]
+        public async Task<HttpResponseData> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequestData req, string? id = null)
         {
             try
             {
-                var queryParams = req.GetQueryParameterDictionary();
+                Dictionary<string, string> queryParams = req.GetQueryParameterDictionary();
 
                 bool includeDetails = false;
                 if (queryParams.Any(p => p.Key == nameof(includeDetails).ToLowerInvariant()))
-                    bool.TryParse(queryParams[nameof(includeDetails).ToLowerInvariant()], out includeDetails);
+                    _ = bool.TryParse(queryParams[nameof(includeDetails).ToLowerInvariant()], out includeDetails);
 
 
                 if (!string.IsNullOrWhiteSpace(id))
                 {
-                    EntityModel.Blog existingBlog = null;
+                    EntityModel.Blog? existingBlog = null;
 
                     if (includeDetails)
                     {
@@ -115,16 +105,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                     if (existingBlog == null)
                     {
-                        log.LogWarning($"Blog with Id {id} not found");
-                        return new NotFoundResult();
+                        _logger.LogWarning($"Blog with Id {id} not found");
+                        return req.CreateResponse(HttpStatusCode.NotFound);
                     }
 
-                    return new OkObjectResult(JsonConvert.SerializeObject(existingBlog.ToDto(includeDetails), _jsonSerializerSettings));
+                    return await req.CreateOKResponseDataWithJsonAsync(existingBlog.ToDto(includeDetails));
 
                 }
                 else
                 {
-                    log.LogInformation("Trying to get posts", queryParams.ToArray());
+                    _logger.LogInformation("Trying to get posts", queryParams.ToArray());
 
                     List<EntityModel.Blog> entityResultSet = new List<EntityModel.Blog>();
 
@@ -140,72 +130,63 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     //always just return the plain blog list, details should be loaded per blog as they can be MASSIVE
                     List<DtoModel.Blog> resultSet = entityResultSet.Select(entity => entity.ToDto(false)).ToList();
 
-                    return new OkObjectResult(JsonConvert.SerializeObject(resultSet, _jsonSerializerSettings));
+                    return await req.CreateOKResponseDataWithJsonAsync(resultSet);
                 }
             }
 
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
         }
 
-        [FunctionName($"{nameof(BlogFunction)}_{nameof(Update)}")]
-        public async Task<IActionResult> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
+        [Function($"{nameof(BlogFunction)}_{nameof(Update)}")]
+        public async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequestData req, string id)
         {
             try
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                DtoModel.Blog updatedBlog = JsonConvert.DeserializeObject<DtoModel.Blog>(requestBody, _jsonSerializerSettings);
+                DtoModel.Blog? updatedBlog = JsonConvert.DeserializeObject<DtoModel.Blog>(requestBody);
 
                 if (updatedBlog != null)
                 {
-                    try
+                    EntityModel.Blog? exisistingBlog =
+                        await _blogContext.Blogs.SingleOrDefaultAsync(blog => blog.BlogId == Guid.Parse(id));
+
+                    if (exisistingBlog != null)
                     {
-                        EntityModel.Blog exisistingBlog =
-                            await _blogContext.Blogs.SingleOrDefaultAsync(blog => blog.BlogId == Guid.Parse(id));
+                        exisistingBlog.UpdateWith(updatedBlog);
 
-                        if (exisistingBlog != null)
-                        {
-                            exisistingBlog.UpdateWith(updatedBlog);
-
-                            await _blogContext.SaveChangesAsync();
-                            return new AcceptedResult();
-                        }
-                        else
-                        {
-                            log.LogWarning($"Blog with Id '{id}' not found.");
-                            return new NotFoundResult();
-                        }
+                        await _blogContext.SaveChangesAsync();
+                        return req.CreateResponse(HttpStatusCode.Accepted);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        //TODO: better handling of these cases...
-                        return new BadRequestObjectResult(ex);
+                        _logger.LogWarning($"Blog with Id '{id}' not found.");
+                        return req.CreateResponse(HttpStatusCode.NotFound);
                     }
                 }
                 else
                 {
-                    return new BadRequestObjectResult("Submitted data is invalid, blog cannot be modified.");
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, blog cannot be modified.");
                 }
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
-
-
         }
 
-        [FunctionName($"{nameof(BlogFunctions)}_{nameof(Delete)}")]
-        public async Task<IActionResult> Delete([HttpTrigger(AuthorizationLevel.Admin, new[] { "delete" }, Route = Route + "/{id}")] HttpRequest req, ILogger log, string id)
+
+        [Function($"{nameof(BlogFunctions)}_{nameof(Delete)}")]
+        public async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Admin, new[] { "delete" }, Route = Route + "/{id}")] HttpRequestData req, string id)
         {
             try
             {
-                EntityModel.Blog existingBlog = await _blogContext.Blogs.
+                EntityModel.Blog? existingBlog = await _blogContext.Blogs.
                                                     Include(blog => blog.Authors).
                                                     ThenInclude(author => author.UserImage).
                                                     ThenInclude(medium => medium.MediumType).
@@ -229,19 +210,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                 if (existingBlog == null)
                 {
-                    log.LogWarning($"Post with Id {id} not found");
-                    return new NotFoundResult();
+                    _logger.LogWarning($"Post with Id {id} not found");
+                    return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
                 _blogContext.Blogs.Remove(existingBlog);
                 await _blogContext.SaveChangesAsync();
 
-                return new OkResult();
+                return req.CreateResponse(HttpStatusCode.OK);
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
-                return new BadRequestObjectResult(ex);
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
         }
 

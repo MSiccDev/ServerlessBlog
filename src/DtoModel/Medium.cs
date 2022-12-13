@@ -1,6 +1,5 @@
 ﻿using System;
-
-namespace DtoModel
+namespace MSiccDev.ServerlessBlog.DtoModel
 {
     public class Medium
     {

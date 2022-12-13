@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-
-namespace DtoModel
+namespace MSiccDev.ServerlessBlog.DtoModel
 {
     public class Author
     {
