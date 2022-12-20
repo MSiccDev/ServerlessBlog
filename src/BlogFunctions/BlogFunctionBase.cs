@@ -1,49 +1,62 @@
-﻿using Microsoft.Extensions.Logging;
-using MSiccDev.ServerlessBlog.EFCore;
-using Newtonsoft.Json;
+﻿using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-
-
+using Microsoft.Extensions.Logging;
+using MSiccDev.ServerlessBlog.EFCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public abstract class BlogFunctionBase
     {
-        internal readonly BlogContext _blogContext;
-        internal ILogger _logger;
+        internal readonly BlogContext BlogContext;
+        internal ILogger Logger;
+        internal JsonSerializerSettings? JsonSerializerSettings;
 
 #pragma warning disable CS8618
         public BlogFunctionBase(BlogContext blogContext)
 #pragma warning restore CS8618
         {
-            _blogContext = blogContext ?? throw new ArgumentNullException(nameof(blogContext));
+            BlogContext = blogContext ?? throw new ArgumentNullException(nameof(blogContext));
+
+            CreateNewtonSoftSerializerSettings();
         }
 
+        private void CreateNewtonSoftSerializerSettings()
+        {
+            JsonSerializerSettings = NewtonsoftJsonObjectSerializer.CreateJsonSerializerSettings();
 
-        public virtual Task<HttpResponseData> Create(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestData req,
+            JsonSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+
+            JsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            JsonSerializerSettings.Formatting = Formatting.Indented;
+            JsonSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            JsonSerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+            JsonSerializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
+        }
+
+        public virtual Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestData req,
             string blogId)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<HttpResponseData> Get(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestData req, 
-            string blogId, string? id = null)
+        public virtual Task<HttpResponseData> GetList([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestData req, string blogId)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<HttpResponseData> Update(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = null)] HttpRequestData req, 
-            string blogId, string id)
+        public virtual Task<HttpResponseData> GetSingle([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestData req, string blogId, string id)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task<HttpResponseData> Delete(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = null)] HttpRequestData req, 
-            string blogId, string id)
+        public virtual Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, "put", Route = null)] HttpRequestData req, string blogId, string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, "delete", Route = null)] HttpRequestData req, string blogId, string id)
         {
             throw new NotImplementedException();
         }

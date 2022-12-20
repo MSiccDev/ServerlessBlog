@@ -1,18 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using MSiccDev.ServerlessBlog.EFCore;
-using Microsoft.EntityFrameworkCore;
-using MSiccDev.ServerlessBlog.ModelHelper;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using MSiccDev.ServerlessBlog.DtoModel;
+using MSiccDev.ServerlessBlog.EFCore;
+using MSiccDev.ServerlessBlog.ModelHelper;
+using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public class TagFunction : BlogFunctionBase
@@ -21,9 +19,15 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         public TagFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext)
         {
-            _logger = loggerFactory.CreateLogger<TagFunction>();
+            Logger = loggerFactory.CreateLogger<TagFunction>();
         }
 
+        [OpenApiOperation("CREATE", "Tag", Description = "Creates a new tag for the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog the new tag should live in")]
+        [OpenApiRequestBody("application/json", typeof(Tag), Required = true, Description = "Tag object to be created")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Created, Description = "Created Response if succeeded")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(TagFunction)}_{nameof(Create)}")]
         public override async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequestData req, string blogId)
         {
@@ -32,22 +36,22 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                DtoModel.Tag? tag = JsonConvert.DeserializeObject<DtoModel.Tag>(requestBody);
+                Tag? tag = JsonConvert.DeserializeObject<Tag>(requestBody);
 
                 if (tag != null)
                 {
                     EntityModel.Tag newTagEntity = tag.CreateFrom(Guid.Parse(blogId));
 
                     EntityEntry<EntityModel.Tag> createdTag =
-                        _blogContext.Tags.Add(newTagEntity);
+                        BlogContext.Tags.Add(newTagEntity);
 
-                    await _blogContext.SaveChangesAsync();
+                    await BlogContext.SaveChangesAsync();
 
                     return await req.CreateNewEntityCreatedResponseDataAsync(createdTag.Entity.TagId);
                 }
                 else
                 {
-                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest,"Submitted data is invalid, author cannot be created.");
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, tag cannot be created.");
                 }
             }
             catch (Exception ex)
@@ -57,27 +61,36 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
-        [Function($"{nameof(TagFunction)}_{nameof(Delete)}")]
-        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+
+        [OpenApiOperation("GET", "Tag", Description = "Gets a list of tags from the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tags exist", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("skip", Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("count", Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Tag), Description = "Gets a list of tags")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
+        [Function($"{nameof(TagFunction)}_{nameof(GetList)}")]
+        public override async Task<HttpResponseData> GetList([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route)] HttpRequestData req, string blogId)
         {
             try
             {
-                EntityModel.Tag? existingTag =
-                    await _blogContext.Tags.
-                            SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
-                                                        tag.TagId == Guid.Parse(id));
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
 
-                if (existingTag == null)
-                {
-                    _logger.LogWarning($"Tag with Id {id} not found");
-                    return req.CreateResponse(HttpStatusCode.NotFound);
-                }
+                Logger.LogInformation("Trying to get tags...");
 
-                _blogContext.Tags.Remove(existingTag);
+                (int count, int skip) = req.GetPagingProperties();
 
-                await _blogContext.SaveChangesAsync();
+                List<EntityModel.Tag> entityResultSet = await BlogContext.Tags.
+                                                                          Where(tag => tag.BlogId == Guid.Parse(blogId)).
+                                                                          Skip(skip).
+                                                                          Take(count).
+                                                                          ToListAsync();
 
-                return req.CreateResponse(HttpStatusCode.OK);
+                List<Tag> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
+
+                return await req.CreateOkResponseDataWithJsonAsync(resultSet, JsonSerializerSettings);
+                
             }
             catch (Exception ex)
             {
@@ -86,8 +99,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
-        [Function($"{nameof(TagFunction)}_{nameof(Get)}")]
-        public override async Task<HttpResponseData> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequestData req, string blogId, string? id = null)
+
+        [OpenApiOperation("GET", "Tag", Description = "Gets one or more tags from the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tag(s) exists", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("id", Type = typeof(Guid?), Required = false, Description = "Id of the desired tag, otherwise none", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Tag), Description = "Gets a list of tags when no Id is specified or a single tag filtered by the specified Id")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No tag with the specified id was found on this blog")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
+        [Function($"{nameof(TagFunction)}_{nameof(GetSingle)}")]
+        public override async Task<HttpResponseData> GetSingle([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
@@ -96,38 +117,24 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 
                 if (!string.IsNullOrWhiteSpace(id))
                 {
+                    Logger.LogInformation("Trying to get tag with Id {Id}...", id);
+
                     EntityModel.Tag? existingTag =
-                        await _blogContext.Tags.
-                                   SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
-                                                               tag.TagId == Guid.Parse(id));
+                        await BlogContext.Tags.
+                                          SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
+                                                                      tag.TagId == Guid.Parse(id));
 
                     if (existingTag == null)
                     {
-                        _logger.LogWarning($"Tag with Id {id} not found");
+                        Logger.LogWarning("Tag with Id {Id} not found", id);
                         return req.CreateResponse(HttpStatusCode.NotFound);
                     }
 
-                    return await req.CreateOKResponseDataWithJsonAsync(existingTag.ToDto());
+                    return await req.CreateOkResponseDataWithJsonAsync(existingTag.ToDto(), JsonSerializerSettings);
                 }
-                else
-                {
-                    _logger.LogInformation("Trying to get tags...");
 
-                    var queryParams = req.GetQueryParameterDictionary();
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, must specify BlogId");
 
-                    
-                    (int count, int skip) = req.GetPagingProperties();
-
-                    List<EntityModel.Tag> entityResultSet = await _blogContext.Tags.
-                                                                              Where(author => author.BlogId == Guid.Parse(blogId)).
-                                                                              Skip(skip).
-                                                                              Take(count).
-                                                                              ToListAsync();
-
-                    List<DtoModel.Tag> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
-
-                    return await req.CreateOKResponseDataWithJsonAsync(resultSet);
-                }
             }
             catch (Exception ex)
             {
@@ -136,6 +143,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
+
+        [OpenApiOperation("UPDATE", "Tag", Description = "Updates an existing tag of the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tag exists", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiRequestBody("application/json", typeof(Tag), Required = true, Description = "Tag object to be updated")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Accepted, Description = "Accepted if the update operation succeeded")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No tag with the specified id was found on this blog")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(TagFunction)}_{nameof(Update)}")]
         public override async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
@@ -143,23 +158,23 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                DtoModel.Tag? tag = JsonConvert.DeserializeObject<DtoModel.Tag>(requestBody);
+                Tag? tagToUpdate = JsonConvert.DeserializeObject<Tag>(requestBody);
 
-                if (tag != null)
+                if (tagToUpdate != null)
                 {
                     EntityModel.Tag? existingTag =
-                        await _blogContext.Tags.
-                                SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
-                                                            tag.TagId == Guid.Parse(id));
+                        await BlogContext.Tags.
+                                          SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
+                                                                      tag.TagId == Guid.Parse(id));
                     if (existingTag == null)
                     {
-                        _logger.LogWarning($"Tag with Id {id} not found");
+                        Logger.LogWarning("Tag with Id {Id} not found", id);
                         return req.CreateResponse(HttpStatusCode.NotFound);
                     }
 
-                    existingTag.UpdateWith(tag);
+                    existingTag.UpdateWith(tagToUpdate);
 
-                    await _blogContext.SaveChangesAsync();
+                    await BlogContext.SaveChangesAsync();
 
                     return req.CreateResponse(HttpStatusCode.Accepted);
                 }
@@ -175,6 +190,41 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
+
+        [OpenApiOperation("DELETE", "Tag", Description = "Deletes an existing tag from the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tag exists", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "OK Response if succeeded")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No tag with the specified id was found on this blog")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
+        [Function($"{nameof(TagFunction)}_{nameof(Delete)}")]
+        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, "delete", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        {
+            try
+            {
+                EntityModel.Tag? existingTag =
+                    await BlogContext.Tags.
+                                      SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&
+                                                                  tag.TagId == Guid.Parse(id));
+
+                if (existingTag == null)
+                {
+                    Logger.LogWarning("Tag with Id {Id} not found", id);
+                    return req.CreateResponse(HttpStatusCode.NotFound);
+                }
+
+                BlogContext.Tags.Remove(existingTag);
+
+                await BlogContext.SaveChangesAsync();
+
+                return req.CreateResponse(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+            }
+        }
 
     }
 }

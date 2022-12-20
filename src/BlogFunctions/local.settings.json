@@ -1,0 +1,12 @@
+﻿{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "SqlConnectionString": "Data Source=localhost;Initial Catalog=localDB;User ID=sa;Password=thisShouldB3Stronger!",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+
+    "OpenApi__Version": "v3",
+    "OpenApi__DocTitle": "Serverless Blog API",
+    "OpenApi__DocVersion": "1.22501.0"
+  }
+}

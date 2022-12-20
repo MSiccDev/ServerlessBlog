@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
 namespace MSiccDev.ServerlessBlog.EntityModel
 {
     public class Medium
