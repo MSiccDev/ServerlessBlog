@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using MSiccDev.ServerlessBlog.DtoModel;
-
 namespace MSiccDev.ServerlessBlog.ModelHelper
 {
     public static class EntityToDtoMapExtensions
     {
 
-        public static DtoModel.Author ToDto(this EntityModel.Author entity)
+        public static Author ToDto(this EntityModel.Author entity)
         {
-            return new DtoModel.Author()
+            return new Author
             {
                 AuthorId = entity.AuthorId,
                 DisplayName = entity.DisplayName,
@@ -20,9 +17,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             };
         }
 
-        public static DtoModel.Blog ToDto(this EntityModel.Blog entity, bool includeEmpty = true)
+        public static Blog ToDto(this EntityModel.Blog entity, bool includeEmpty = true)
         {
-            return new DtoModel.Blog()
+            return new Blog
             {
                 BlogId = entity.BlogId,
                 Authors = entity.Authors != null ? entity.Authors.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Author>() : null),
@@ -35,9 +32,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             };
         }
 
-        public static DtoModel.Medium ToDto(this EntityModel.Medium entity)
+        public static Medium ToDto(this EntityModel.Medium entity)
         {
-            return new DtoModel.Medium()
+            return new Medium
             {
                 MediumId = entity.MediumId,
                 MediumType = entity.MediumType.ToDto(),
@@ -47,9 +44,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             };
         }
 
-        public static DtoModel.MediumType ToDto(this EntityModel.MediumType entity)
+        public static MediumType ToDto(this EntityModel.MediumType entity)
         {
-            return new DtoModel.MediumType()
+            return new MediumType
             {
                 MediumTypeId = entity.MediumTypeId,
                 MimeType = entity.MimeType,
@@ -58,9 +55,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             };
         }
 
-        public static DtoModel.Tag ToDto(this EntityModel.Tag entity)
+        public static Tag ToDto(this EntityModel.Tag entity)
         {
-            return new DtoModel.Tag()
+            return new Tag
             {
                 TagId = entity.TagId,
                 Name = entity.Name,
@@ -68,29 +65,31 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             };
         }
 
-        public static DtoModel.Post ToDto(this EntityModel.Post entity)
+        public static Post ToDto(this EntityModel.Post entity)
         {
-            DtoModel.Post result = new DtoModel.Post()
+            Post result = new Post
             {
                 PostId = entity.PostId,
                 BlogId = entity.BlogId,
-                Author = entity.Author != null ? entity.Author.ToDto() : null,
+                Author = entity.Author?.ToDto(),
                 Title = entity.Title,
                 Content = entity.Content,
                 LastModified = entity.LastModified,
                 Published = entity.Published,
                 Slug = entity.Slug,
-                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : new List<Tag>(),
-                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : new List<Medium>()
+                Tags = entity.Tags?.Select(entity => entity.ToDto()).ToList(),
+                Media = entity.Media?.Select(entity => entity.ToDto()).ToList()
             };
 
+            if (result.Media == null)
+                return result;
 
             foreach (Medium medium in result.Media)
             {
                 medium.IsPostImage = entity.PostMediumMappings?.
                                             SingleOrDefault(mapping =>
-                                            mapping.MediumId == medium.MediumId &&
-                                            mapping.PostId == result.PostId
+                                                mapping.MediumId == medium.MediumId &&
+                                                mapping.PostId == result.PostId
                                             )?.AsFeatuerdOnPost ?? false;
             }
 
