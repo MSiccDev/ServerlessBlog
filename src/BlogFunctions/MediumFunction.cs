@@ -1,19 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using MSiccDev.ServerlessBlog.EFCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using MSiccDev.ServerlessBlog.ModelHelper;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.VisualBasic;
-
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using MSiccDev.ServerlessBlog.DtoModel;
+using MSiccDev.ServerlessBlog.EFCore;
+using MSiccDev.ServerlessBlog.ModelHelper;
+using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public class MediumFunction : BlogFunctionBase
@@ -22,9 +19,15 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         public MediumFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext)
         {
-            _logger = loggerFactory.CreateLogger<MediumFunction>();
+            Logger = loggerFactory.CreateLogger<MediumFunction>();
         }
 
+        [OpenApiOperation("CREATE", "Medium", Description = "Creates a new medium for the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog the new medium should live in")]
+        [OpenApiRequestBody("application/json", typeof(Medium), Required = true, Description = "Medium object to be created")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Created, Description = "Created Response if succeeded")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(MediumFunction)}_{nameof(Create)}")]
         public override async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequestData req, string blogId)
         {
@@ -33,16 +36,16 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                DtoModel.Medium? medium = JsonConvert.DeserializeObject<DtoModel.Medium>(requestBody);
+                Medium? medium = JsonConvert.DeserializeObject<Medium>(requestBody);
 
                 if (medium != null)
                 {
                     EntityModel.Medium newMedium = medium.CreateFrom(Guid.Parse(blogId));
 
                     EntityEntry<EntityModel.Medium> createdMedium =
-                        _blogContext.Media.Add(newMedium);
+                        BlogContext.Media.Add(newMedium);
 
-                    await _blogContext.SaveChangesAsync();
+                    await BlogContext.SaveChangesAsync();
 
                     return await req.CreateNewEntityCreatedResponseDataAsync(createdMedium.Entity.MediumId);
 
@@ -59,78 +62,79 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
-        [Function($"{nameof(MediumFunction)}_{nameof(Delete)}")]
-        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, new[] { "delete" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+
+        [OpenApiOperation("GET", "Medium", Description = "Gets media from the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the media exist", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("skip", Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("count", Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Medium), Description = "Gets a list of media")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
+        [Function($"{nameof(MediumFunction)}_{nameof(GetList)}")]
+        public override async Task<HttpResponseData> GetList([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route)] HttpRequestData req, string blogId)
         {
             try
             {
-                EntityModel.Medium? existinMedium =
-                    await _blogContext.Media.
-                        SingleOrDefaultAsync(medium => medium.BlogId == Guid.Parse(blogId) &&
-                                                       medium.MediumId == Guid.Parse(id));
+                Logger.LogInformation("Trying to get media...");
 
-                if (existinMedium == null)
-                {
-                    _logger.LogWarning($"Medium with Id {id} not found");
-                    return req.CreateResponse(HttpStatusCode.NotFound);
-                }
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
 
-                _blogContext.Media.Remove(existinMedium);
+                (int count, int skip) = req.GetPagingProperties();
 
-                await _blogContext.SaveChangesAsync();
+                List<EntityModel.Medium> entityResultSet = await BlogContext.Media.
+                                                                             Include(medium => medium.MediumType).
+                                                                             Where(media => media.BlogId == Guid.Parse(blogId)).
+                                                                             Skip(skip).
+                                                                             Take(count).
+                                                                             ToListAsync();
 
-                return req.CreateResponse(HttpStatusCode.OK);
+                List<Medium> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
+
+                return await req.CreateOkResponseDataWithJsonAsync(resultSet, JsonSerializerSettings);
+
             }
             catch (Exception ex)
             {
                 //TODO: better handling of these cases...
                 return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
             }
+
         }
 
-        [Function($"{nameof(MediumFunction)}_{nameof(Get)}")]
-        public override async Task<HttpResponseData> Get([HttpTrigger(AuthorizationLevel.Function, new[] { "get" }, Route = Route + "/{id?}")] HttpRequestData req, string blogId, string? id = null)
+
+        [OpenApiOperation("GET", "Medium", Description = "Gets a medium from the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the medium exists", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("id", Type = typeof(Guid), Required = false, Description = "Id of the desired medium", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Medium), Description = "Gets a a single medium filtered by the specified Id")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No medium with the specified id was found on this blog")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
+        [Function($"{nameof(MediumFunction)}_{nameof(GetSingle)}")]
+        public override async Task<HttpResponseData> GetSingle([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
                 if (!string.IsNullOrWhiteSpace(id))
                 {
+                    Logger.LogInformation("Trying to get medium with Id {Id}...", id);
+
                     EntityModel.Medium? existingMedium =
-                            await _blogContext.Media.
-                                   Include(medium => medium.MediumType).
-                                   SingleOrDefaultAsync(medium => medium.BlogId == Guid.Parse(blogId) &&
-                                                                  medium.MediumId == Guid.Parse(id));
+                        await BlogContext.Media.
+                                          Include(medium => medium.MediumType).
+                                          SingleOrDefaultAsync(medium => medium.BlogId == Guid.Parse(blogId) &&
+                                                                         medium.MediumId == Guid.Parse(id));
 
                     if (existingMedium == null)
                     {
-                        _logger.LogWarning($"Medium with Id {id} not found");
+                        Logger.LogWarning("Medium with Id {Id} not found", id);
                         return req.CreateResponse(HttpStatusCode.NotFound);
                     }
 
-                    return await req.CreateOKResponseDataWithJsonAsync(existingMedium.ToDto());
+                    return await req.CreateOkResponseDataWithJsonAsync(existingMedium.ToDto(), JsonSerializerSettings);
                 }
-                else
-                {
-                    _logger.LogInformation("Trying to get media...");
 
-                    var queryParams = req.GetQueryParameterDictionary();
-
-                    if ((string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default))
-                        return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest,"Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
-
-                    (int count, int skip) = req.GetPagingProperties();
-
-                    List<EntityModel.Medium> entityResultSet = await _blogContext.Media.
-                                                                                  Include(medium => medium.MediumType).
-                                                                                  Where(media => media.BlogId == Guid.Parse(blogId)).
-                                                                                  Skip(skip).
-                                                                                  Take(count).
-                                                                                  ToListAsync();
-
-                    List<DtoModel.Medium> resultSet = entityResultSet.Select(entity => entity.ToDto()).ToList();
-
-                    return await req.CreateOKResponseDataWithJsonAsync(resultSet);
-                }
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, must specify BlogId");
             }
             catch (Exception ex)
             {
@@ -140,6 +144,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         }
 
+
+        [OpenApiOperation("UPDATE", "Medium", Description = "Updates an existing medium of the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the medium exists", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiRequestBody("application/json", typeof(Medium), Required = true, Description = "Medium object to be updated")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Accepted, Description = "Accepted if the update operation succeeded")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No medium with the specified id was found on this blog")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(MediumFunction)}_{nameof(Update)}")]
         public override async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
@@ -147,25 +159,25 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                DtoModel.Medium? medium = JsonConvert.DeserializeObject<DtoModel.Medium>(requestBody);
+                Medium? mediumToUpdate = JsonConvert.DeserializeObject<Medium>(requestBody);
 
-                if (medium != null)
+                if (mediumToUpdate != null)
                 {
                     EntityModel.Medium? existingMedium =
-                            await _blogContext.Media.
-                                   Include(medium => medium.MediumType).
-                                   SingleOrDefaultAsync(medium => medium.BlogId == Guid.Parse(blogId) &&
-                                                                  medium.MediumId == Guid.Parse(id));
+                        await BlogContext.Media.
+                                          Include(medium => medium.MediumType).
+                                          SingleOrDefaultAsync(medium => medium.BlogId == Guid.Parse(blogId) &&
+                                                                         medium.MediumId == Guid.Parse(id));
 
                     if (existingMedium == null)
                     {
-                        _logger.LogWarning($"Mediumt with Id {id} not found");
+                        Logger.LogWarning("Medium with Id {Id} not found", id);
                         return req.CreateResponse(HttpStatusCode.NotFound);
                     }
 
-                    existingMedium.UpdateWith(medium);
+                    existingMedium.UpdateWith(mediumToUpdate);
 
-                    await _blogContext.SaveChangesAsync();
+                    await BlogContext.SaveChangesAsync();
 
                     return req.CreateResponse(HttpStatusCode.Accepted);
 
@@ -183,6 +195,41 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
         }
 
+
+        [OpenApiOperation("DELETE", "Medium", Description = "Deletes an existing medium from the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
+        [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the medium exists", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "OK Response if succeeded")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No medium with the specified id was found on this blog")]
+        [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
+        [Function($"{nameof(MediumFunction)}_{nameof(Delete)}")]
+        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, "delete", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        {
+            try
+            {
+                EntityModel.Medium? existingMedium =
+                    await BlogContext.Media.
+                                      SingleOrDefaultAsync(medium => medium.BlogId == Guid.Parse(blogId) &&
+                                                                     medium.MediumId == Guid.Parse(id));
+
+                if (existingMedium == null)
+                {
+                    Logger.LogWarning("Medium with Id {Id} not found", id);
+                    return req.CreateResponse(HttpStatusCode.NotFound);
+                }
+
+                BlogContext.Media.Remove(existingMedium);
+
+                await BlogContext.SaveChangesAsync();
+
+                return req.CreateResponse(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                //TODO: better handling of these cases...
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+            }
+        }
 
     }
 }

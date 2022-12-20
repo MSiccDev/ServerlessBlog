@@ -13,6 +13,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.8.0" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi" Version="1.4.0" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.7.0" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.7.0" />
@@ -27,9 +28,6 @@
 	  <None Remove="Microsoft.Extensions.DependencyInjection" />
 	  <None Remove="Newtonsoft.Json" />
 	  <None Remove="Microsoft.Azure.Core.NewtonsoftJson" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Include="Startup.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="host.json">
@@ -53,8 +51,5 @@
 	  <ProjectReference Include="..\ModelHelper\ModelHelper.csproj">
 	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
 	  </ProjectReference>
-	</ItemGroup>
-	<ItemGroup>
-	  <Compile Remove="Startup.cs" />
 	</ItemGroup>
 </Project>

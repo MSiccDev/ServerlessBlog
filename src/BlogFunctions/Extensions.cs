@@ -1,10 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Net;
-using Azure;
+﻿using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
 using Newtonsoft.Json;
-
 namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public static class Extensions
@@ -49,6 +45,20 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             return (count, skip);
         }
 
+        public static bool IncludeDetails(this HttpRequestData req)
+        {
+            Dictionary<string, string> queryParams = req.GetQueryParameterDictionary();
+
+            bool includeDetails = false;
+            if (queryParams.Any(p => p.Key == nameof(includeDetails).ToLowerInvariant()))
+                _ = bool.TryParse(queryParams[nameof(includeDetails).ToLowerInvariant()], out includeDetails);
+
+            if (queryParams.Any(p => p.Key == nameof(includeDetails)))
+                _ = bool.TryParse(queryParams[nameof(includeDetails)], out includeDetails);
+
+            return includeDetails;
+        }
+        
 
         public static async Task<HttpResponseData> CreateResponseDataAsync(this HttpRequestData req, HttpStatusCode statusCode, string? message)
         {
@@ -72,17 +82,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             return response;
         }
 
-        public static async Task<HttpResponseData> CreateOKResponseDataWithJsonAsync(this HttpRequestData req, object responseData)
+        public static async Task<HttpResponseData> CreateOkResponseDataWithJsonAsync(this HttpRequestData req, object responseData, JsonSerializerSettings? settings)
         {
-            string json = JsonConvert.SerializeObject(responseData);
-
+            string json = JsonConvert.SerializeObject(responseData, settings);
+            
             HttpResponseData response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "application/json");
+            response.Headers.Add("Content-Type", "application/json; charset=utf-8");
 
             await response.WriteStringAsync(json);
 
             return response;
         }
+        
+
     }
 }
 
