@@ -6,7 +6,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using MSiccDev.ServerlessBlog.DtoModel;
 using MSiccDev.ServerlessBlog.EFCore;
 using MSiccDev.ServerlessBlog.ModelHelper;
@@ -23,13 +22,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
         [OpenApiOperation("CREATE", "Medium", Description = "Creates a new medium for the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog the new medium should live in")]
         [OpenApiRequestBody("application/json", typeof(Medium), Required = true, Description = "Medium object to be created")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Created, Description = "Created Response if succeeded")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(MediumFunction)}_{nameof(Create)}")]
-        public override async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequestData req, string blogId)
+        public override async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = Route)] HttpRequestData req, string blogId)
         {
             try
             {
@@ -64,14 +63,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("GET", "Medium", Description = "Gets media from the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the media exist", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("skip", Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("count", Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Medium), Description = "Gets a list of media")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(MediumFunction)}_{nameof(GetList)}")]
-        public override async Task<HttpResponseData> GetList([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route)] HttpRequestData req, string blogId)
+        public override async Task<HttpResponseData> GetList([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Route)] HttpRequestData req, string blogId)
         {
             try
             {
@@ -104,14 +103,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("GET", "Medium", Description = "Gets a medium from the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the medium exists", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("id", Type = typeof(Guid), Required = false, Description = "Id of the desired medium", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Medium), Description = "Gets a a single medium filtered by the specified Id")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No medium with the specified id was found on this blog")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(MediumFunction)}_{nameof(GetSingle)}")]
-        public override async Task<HttpResponseData> GetSingle([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        public override async Task<HttpResponseData> GetSingle([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
@@ -146,14 +145,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("UPDATE", "Medium", Description = "Updates an existing medium of the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the medium exists", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiRequestBody("application/json", typeof(Medium), Required = true, Description = "Medium object to be updated")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Accepted, Description = "Accepted if the update operation succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No medium with the specified id was found on this blog")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(MediumFunction)}_{nameof(Update)}")]
-        public override async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        public override async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
@@ -197,13 +196,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("DELETE", "Medium", Description = "Deletes an existing medium from the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog on which the medium exists", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "OK Response if succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No medium with the specified id was found on this blog")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(MediumFunction)}_{nameof(Delete)}")]
-        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, "delete", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {

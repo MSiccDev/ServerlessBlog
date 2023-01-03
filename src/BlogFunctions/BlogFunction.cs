@@ -45,12 +45,12 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 		}
 
 		[OpenApiOperation("CREATE", "Blog", Description = "Creates a new blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
 		[OpenApiRequestBody("application/json", typeof(Blog), Required = true, Description = "Blog object to be created")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Created, Description = "Created Response if succeeded")]
+		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
 		[Function($"{nameof(BlogFunction)}_{nameof(Create)}")]
-		public async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Admin, "post", Route = Route)] HttpRequestData req)
+		public async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = Route)] HttpRequestData req)
 		{
 			try
 			{
@@ -78,13 +78,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
 		[OpenApiOperation("GET", "Blog", Description = "Gets a list of blogs from the database.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
 		[OpenApiParameter("skip", In = ParameterLocation.Query, Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiParameter("count", In = ParameterLocation.Query, Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<Blog>), Description = "Gets a list of blogs when no Id is specified or a single blog filtered by the specified Id")]
+		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
 		[Function($"{nameof(BlogFunction)}_{nameof(GetBlogList)}")]
-		public async Task<HttpResponseData> GetBlogList([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route)] HttpRequestData req, string? id = null)
+		public async Task<HttpResponseData> GetBlogList([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Route)] HttpRequestData req, string? id = null)
 		{
 			try
 			{
@@ -113,14 +113,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
 		[OpenApiOperation("GET", "Blog", Description = "Gets a blog by its id from the database.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
 		[OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true, Description = "Id of the desired blog", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiParameter("includeDetails", In = ParameterLocation.Query, Required = true, Type = typeof(bool), Description = "Control if response should contain Posts, Tags, Media and Authors. Warning: This could result in a very large .json. Treat this as full export.", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Blog), Description = "Gets a single blog filtered by the specified Id")]
+		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No blog with the specified id was found")]
 		[OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
 		[Function($"{nameof(BlogFunction)}_{nameof(GetBlog)}")]
-		public async Task<HttpResponseData> GetBlog([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route + "/{id}")] HttpRequestData req, string? id = null)
+		public async Task<HttpResponseData> GetBlog([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Route + "/{id}")] HttpRequestData req, string? id = null)
 		{
 			try
 			{
@@ -178,14 +178,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
 		[OpenApiOperation("UPDATE", "Blog", Description = "Updates a blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
 		[OpenApiRequestBody("application/json", typeof(Blog), Required = true, Description = "Blog object to be updated")]
 		[OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid?), Required = true, Description = "Id of the blog to update", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Accepted, Description = "Accepted if the update operation succeeded")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No blog with the specified id was found")]
+		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
 		[Function($"{nameof(BlogFunction)}_{nameof(Update)}")]
-		public async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, "put", Route = Route + "/{id}")] HttpRequestData req, string id)
+		public async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = Route + "/{id}")] HttpRequestData req, string id)
 		{
 			try
 			{
@@ -218,13 +218,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 		}
 
 		[OpenApiOperation("DELETE", "Blog", Description = "Delete a blog including all sub-entities from the database.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
 		[OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid?), Required = true, Description = "Id of the blog to delete", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "OK response if the delete operation succeeded")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No blog with the specified id was found")]
+		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
 		[Function($"{nameof(BlogFunctions)}_{nameof(Delete)}")]
-		public async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Admin, "delete", Route = Route + "/{id}")] HttpRequestData req, string id)
+		public async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = Route + "/{id}")] HttpRequestData req, string id)
 		{
 			try
 			{

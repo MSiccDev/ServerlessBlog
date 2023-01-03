@@ -1,12 +1,14 @@
 ﻿{
   "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "SqlConnectionString": "Data Source=localhost;Initial Catalog=localDB;User ID=sa;Password=thisShouldB3Stronger!",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "SqlConnectionString": "Data Source=localhost;Initial Catalog=localDB;User ID=sa;Password=thisShouldB3Stronger!",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
 
-    "OpenApi__Version": "v3",
-    "OpenApi__DocTitle": "Serverless Blog API",
-    "OpenApi__DocVersion": "1.22501.0"
-  }
+        "OpenApi__Version": "v3",
+        "OpenApi__DocTitle": "Serverless Blog API",
+        "OpenApi__DocVersion": "1.22501.0",
+
+        "OpenApi__Auth__TenantId": "052ead01-369c-48f8-8e09-2b142c86f42c"
+    }
 }
