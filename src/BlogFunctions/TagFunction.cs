@@ -6,7 +6,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using MSiccDev.ServerlessBlog.DtoModel;
 using MSiccDev.ServerlessBlog.EFCore;
 using MSiccDev.ServerlessBlog.ModelHelper;
@@ -23,13 +22,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
         [OpenApiOperation("CREATE", "Tag", Description = "Creates a new tag for the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog the new tag should live in")]
         [OpenApiRequestBody("application/json", typeof(Tag), Required = true, Description = "Tag object to be created")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Created, Description = "Created Response if succeeded")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(TagFunction)}_{nameof(Create)}")]
-        public override async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Function, new[] { "post" }, Route = Route)] HttpRequestData req, string blogId)
+        public override async Task<HttpResponseData> Create([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = Route)] HttpRequestData req, string blogId)
         {
             try
             {
@@ -63,14 +62,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("GET", "Tag", Description = "Gets a list of tags from the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tags exist", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("skip", Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("count", Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Tag), Description = "Gets a list of tags")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(TagFunction)}_{nameof(GetList)}")]
-        public override async Task<HttpResponseData> GetList([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route)] HttpRequestData req, string blogId)
+        public override async Task<HttpResponseData> GetList([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Route)] HttpRequestData req, string blogId)
         {
             try
             {
@@ -101,14 +100,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("GET", "Tag", Description = "Gets one or more tags from the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tag(s) exists", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("id", Type = typeof(Guid?), Required = false, Description = "Id of the desired tag, otherwise none", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Tag), Description = "Gets a list of tags when no Id is specified or a single tag filtered by the specified Id")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No tag with the specified id was found on this blog")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(TagFunction)}_{nameof(GetSingle)}")]
-        public override async Task<HttpResponseData> GetSingle([HttpTrigger(AuthorizationLevel.Function, "get", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        public override async Task<HttpResponseData> GetSingle([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
@@ -145,14 +144,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("UPDATE", "Tag", Description = "Updates an existing tag of the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tag exists", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiRequestBody("application/json", typeof(Tag), Required = true, Description = "Tag object to be updated")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Accepted, Description = "Accepted if the update operation succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No tag with the specified id was found on this blog")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(TagFunction)}_{nameof(Update)}")]
-        public override async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Function, new[] { "put" }, Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        public override async Task<HttpResponseData> Update([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
@@ -192,13 +191,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("DELETE", "Tag", Description = "Deletes an existing tag from the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiSecurity("ApiKey", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Header)]
         [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the tag exists", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "OK Response if succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No tag with the specified id was found on this blog")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
         [Function($"{nameof(TagFunction)}_{nameof(Delete)}")]
-        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Function, "delete", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
+        public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
             try
             {
