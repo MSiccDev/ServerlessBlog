@@ -22,7 +22,12 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 			              {
 				              if (!string.IsNullOrWhiteSpace(sqlConnectionString))
 					              services.AddDbContext<BlogContext>(options =>
-						              options.UseSqlServer(sqlConnectionString));
+						              options.UseSqlServer(sqlConnectionString,
+						              sqlServerOptions =>
+						              {
+							              //use this to avoid exceptions because of sleeping Azure resource
+							              sqlServerOptions.EnableRetryOnFailure();
+						              }));
 
 				              services.AddSingleton<IOpenApiConfigurationOptions>(_ =>
 				              {
