@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using MSiccDev.ServerlessBlog.AdminClient.View;
 using MSiccDev.ServerlessBlog.AdminClient.ViewModel;
+using MSiccDev.ServerlessBlog.ClientSdk;
+
 namespace MSiccDev.ServerlessBlog.AdminClient
 {
     public static class MauiProgram
@@ -39,6 +41,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         private static void RegisterServices(IServiceCollection serviceCollection)
         {
             serviceCollection.AddHttpClient();
+
+            serviceCollection.AddTransient<IBlogClient, BlogClient>();
         }
     }
 }

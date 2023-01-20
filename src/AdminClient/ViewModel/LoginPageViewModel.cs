@@ -1,10 +1,11 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MSiccDev.ServerlessBlog.AdminClient.Common;
+using MSiccDev.ServerlessBlog.ClientSdk;
 using Newtonsoft.Json;
-
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
     public class LoginPageViewModel : ObservableObject
@@ -128,7 +129,9 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
                             await SecureStorage.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
                             Preferences.Set(Constants.HasObtainedValidAccessTokenStorageName, true);
 
-                            
+                            Ioc.Default.GetRequiredService<IBlogClient>().Init(this.AzureFunctionBaseUrl);
+
+                            //TODO: Navigate to Home here with Shell
                         }
                     }
                 }

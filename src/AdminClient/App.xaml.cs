@@ -9,7 +9,6 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         {
             InitializeComponent();
 
-            //this.MainPage = Ioc.Default.GetRequiredService<LoginPage>();
 
             this.MainPage = new AppShell();
 		}

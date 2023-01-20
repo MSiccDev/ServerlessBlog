@@ -2,12 +2,15 @@
 using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.DtoModel
 {
-    public class MediumType
+    public class MediumType : DtoModelBase
     {
-        [JsonProperty(Required = Required.Always)]
-        public Guid MediumTypeId { get; set; }
+		[JsonProperty(Required = Required.Always)]
+		public override Guid? BlogId { get => base.BlogId; set => base.BlogId = value; }
 
-        [JsonProperty(Required = Required.Always)]
+		[JsonProperty(Required = Required.Always)]
+		public override Guid? ResourceId { get => base.ResourceId; set => base.ResourceId = value; }
+
+		[JsonProperty(Required = Required.Always)]
         public string MimeType { get; set; }
 
         [JsonProperty(Required = Required.Always)]

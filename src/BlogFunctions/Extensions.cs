@@ -5,7 +5,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public static class Extensions
     {
-        public static Dictionary<string, string> GetQueryParameterDictionary(this HttpRequestData req)
+        private static Dictionary<string, string> GetQueryParameterDictionary(this HttpRequestData req)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
 

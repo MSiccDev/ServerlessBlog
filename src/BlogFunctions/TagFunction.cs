@@ -16,10 +16,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
     {
         private const string Route = "blog/{blogId}/tags";
 
-        public TagFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext)
-        {
+        public TagFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext) =>
             Logger = loggerFactory.CreateLogger<TagFunction>();
-        }
 
         [OpenApiOperation("CREATE", "Tag", Description = "Creates a new tag for the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog the new tag should live in")]
@@ -55,8 +53,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error creating tag object on blog with Id {BlogId}", blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -93,8 +91,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error getting tag list for blog with Id \'{Id}\'", blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -137,8 +135,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error getting tag with Id '{TagId}' for blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -184,8 +182,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest,ex.ToString());
+                Logger.LogError(ex, "Error updating tag with Id '{TagId}' for blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -220,8 +218,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error updating tag with Id '{TagId}' from blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 

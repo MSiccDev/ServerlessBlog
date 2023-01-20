@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.DtoModel
 {
-    public class Blog
+    public class Blog : DtoModelBase
     {
         [JsonProperty(Required = Required.Always)]
-        public Guid BlogId { get; set; }
+        public override Guid? BlogId { get => base.BlogId; set => base.BlogId = value; }
 
         [JsonProperty(Required = Required.Always)]
         public string Name { get; set; }
@@ -17,16 +17,16 @@ namespace MSiccDev.ServerlessBlog.DtoModel
         [JsonProperty(Required = Required.Always)]
         public Uri LogoUrl { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<Post> Posts { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<Author> Authors { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<Tag> Tags { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<Medium> Media { get; set; }
     }
 }

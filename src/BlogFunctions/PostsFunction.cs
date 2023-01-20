@@ -16,10 +16,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
     {
         private const string Route = "blog/{blogId}/post";
 
-        public PostsFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext)
-        {
+        public PostsFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext) =>
             Logger = loggerFactory.CreateLogger<PostsFunction>();
-        }
 
         [OpenApiOperation("CREATE", "Post", Description = "Creates a new post for the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog the new post should live in")]
@@ -59,8 +57,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error creating post object on blog with Id {BlogId}", blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -105,8 +103,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error getting post list for blog with Id \'{Id}\'", blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -156,8 +154,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest ,ex.ToString());
+                Logger.LogError(ex, "Error getting post with Id '{PostId}' for blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -213,8 +211,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error updating post with Id '{PostId}' for blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -249,8 +247,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error updating post with Id '{PostId}' from blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
