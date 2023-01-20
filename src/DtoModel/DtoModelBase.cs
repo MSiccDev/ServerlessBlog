@@ -1,8 +1,7 @@
 using System;
-using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.DtoModel
 {
-    public class DtoModelBase
+    public abstract class DtoModelBase
     {
         public virtual Guid? BlogId { get; set; }
 
