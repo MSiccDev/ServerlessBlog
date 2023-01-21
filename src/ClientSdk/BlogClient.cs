@@ -12,12 +12,12 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
     public class BlogClient : IBlogClient
     {
 		private readonly IHttpClientFactory _httpClientFactory;
-		private readonly ILogger _logger;
+		private readonly ILogger<IBlogClient> _logger;
 
         private HttpClient? _httpClient;
 		private string? _apiBaseUrl;
 
-		public BlogClient(IHttpClientFactory httpClientFactory, ILogger logger)
+		public BlogClient(IHttpClientFactory httpClientFactory, ILogger<IBlogClient> logger)
         {
 			_httpClientFactory = httpClientFactory;
 			_logger = logger;

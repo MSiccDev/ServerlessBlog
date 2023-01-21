@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using MSiccDev.ServerlessBlog.AdminClient.Services;
 using MSiccDev.ServerlessBlog.AdminClient.View;
 using MSiccDev.ServerlessBlog.AdminClient.ViewModel;
 using MSiccDev.ServerlessBlog.ClientSdk;
@@ -20,7 +21,6 @@ namespace MSiccDev.ServerlessBlog.AdminClient
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
-
             RegisterServices(builder.Services);
             RegisterViewModels(builder.Services);
             RegisterViews(builder.Services);
@@ -41,8 +41,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         private static void RegisterServices(IServiceCollection serviceCollection)
         {
             serviceCollection.AddHttpClient();
-
-            serviceCollection.AddTransient<IBlogClient, BlogClient>();
+            serviceCollection.AddSingleton<INavigationService, NavigationService>();
+            serviceCollection.AddSingleton<IBlogClient, BlogClient>();
         }
     }
 }

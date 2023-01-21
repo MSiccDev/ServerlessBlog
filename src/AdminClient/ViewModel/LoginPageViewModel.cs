@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MSiccDev.ServerlessBlog.AdminClient.Common;
+using MSiccDev.ServerlessBlog.AdminClient.Services;
 using MSiccDev.ServerlessBlog.ClientSdk;
 using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
@@ -12,7 +13,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<LoginPageViewModel> _logger;
-        private string? _azureFunctionBaseUrl;
+		private readonly IBlogClient _blogClient;
+		private readonly INavigationService _navigationService;
+
+		private string? _azureFunctionBaseUrl;
         private string? _azureAdClientId;
         private string? _azureAdCallbackUrl;
         private string? _azureTenantId;
@@ -23,11 +27,13 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
         private AsyncRelayCommand? _authorizationCommand;
         private RelayCommand? _addAzureAdScopeCommand;
 
-        public LoginPageViewModel(IHttpClientFactory httpClientFactory, ILogger<LoginPageViewModel> logger)
+        public LoginPageViewModel(IHttpClientFactory httpClientFactory, ILogger<LoginPageViewModel> logger, IBlogClient blogClient, INavigationService navigationService)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
-        }
+			_blogClient = blogClient;
+			_navigationService = navigationService;
+		}
 
         private bool CanExecuteLoginAsync() =>
             Connectivity.Current.NetworkAccess == NetworkAccess.Internet &&
@@ -126,12 +132,12 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 
                         if (azureAdAccessToken != null)
                         {
-                            await SecureStorage.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
-                            Preferences.Set(Constants.HasObtainedValidAccessTokenStorageName, true);
+                            await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
+                            Preferences.Default.Set(Constants.HasObtainedValidAccessTokenStorageName, true);
 
-                            Ioc.Default.GetRequiredService<IBlogClient>().Init(this.AzureFunctionBaseUrl);
+                            _blogClient.Init(this.AzureFunctionBaseUrl);
 
-                            //TODO: Navigate to Home here with Shell
+                            await _navigationService.NavigateToRouteAsync(nameof(MainPage), false, ShellNavigationSearchDirection.Up);
                         }
                     }
                 }

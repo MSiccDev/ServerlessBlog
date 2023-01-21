@@ -6,11 +6,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:adminClient="clr-namespace:MSiccDev.ServerlessBlog.AdminClient"
     xmlns:view="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.View"
-    Shell.FlyoutBehavior="Disabled">
+    >
 
-    <ShellItem Title="Login">
+    <ShellItem Title="Login" FlyoutItemIsVisible="False">
         <ShellContent Title="Login" ContentTemplate="{DataTemplate view:LoginPage}" Route="LoginPage"/>
     </ShellItem>
+
+
 
     <ShellContent
         Title="Home"
