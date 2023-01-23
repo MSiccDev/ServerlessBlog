@@ -5,18 +5,46 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:adminClient="clr-namespace:MSiccDev.ServerlessBlog.AdminClient"
-    xmlns:view="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.View"
+    xmlns:view="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.View" FlyoutBehavior="Locked" Shell.NavBarIsVisible="False"
     >
+
+
 
     <ShellItem Title="Login" FlyoutItemIsVisible="False">
         <ShellContent Title="Login" ContentTemplate="{DataTemplate view:LoginPage}" Route="LoginPage"/>
     </ShellItem>
 
 
-
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate adminClient:MainPage}"
-        Route="MainPage" />
-
+        Title="Blog"
+        ContentTemplate="{DataTemplate view:BlogPage}"
+        Route="BlogPage" />
+    <ShellContent
+        Title="Posts"
+        ContentTemplate="{DataTemplate view:PostsPage}"
+        Route="PostsPage" />
+    <ShellContent
+        Title="New Post"
+        ContentTemplate="{DataTemplate view:PostEditorPage}"
+        Route="PostEditorPage" />
+    <ShellContent
+        Title="Tags"
+        ContentTemplate="{DataTemplate view:TagsPage}"
+        Route="TagsPage" />
+    <ShellContent
+        Title="Media"
+        ContentTemplate="{DataTemplate view:MediaPage}"
+        Route="MediaPage" />
+    <ShellContent
+        Title="Author"
+        ContentTemplate="{DataTemplate view:AuthorPage}"
+        Route="AuthorPage" />
+    <ShellContent
+        Title="Settings"
+        ContentTemplate="{DataTemplate view:SettingsPage}"
+        Route="SettingsPage" />
+    <ShellContent
+        Title="About"
+        ContentTemplate="{DataTemplate view:AboutPage}"
+        Route="AboutPage" />
 </Shell>

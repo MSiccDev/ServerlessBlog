@@ -78,4 +78,30 @@
     <ItemGroup>
       <ProjectReference Include="..\ClientSdk\ClientSdk.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <MauiXaml Update="View\TagsPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+      <MauiXaml Update="View\MediaPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+      <MauiXaml Update="View\AuthorPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+      <MauiXaml Update="View\PostsPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+      <MauiXaml Update="View\PostEditorPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+      <MauiXaml Update="View\SettingsPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+      <MauiXaml Update="View\AboutPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+      <MauiXaml Update="View\BlogPage.xaml">
+        <SubType></SubType>
+      </MauiXaml>
+    </ItemGroup>
 </Project>

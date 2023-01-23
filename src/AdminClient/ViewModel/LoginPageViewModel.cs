@@ -137,7 +137,9 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 
                             _blogClient.Init(this.AzureFunctionBaseUrl);
 
-                            await _navigationService.NavigateToRouteAsync(nameof(MainPage), false, ShellNavigationSearchDirection.Up);
+                            //TODO: add initial loading of blog(s)
+
+                            await _navigationService.NavigateToRouteAsync(nameof(View.BlogPage), false, ShellNavigationSearchDirection.Up);
                         }
                     }
                 }

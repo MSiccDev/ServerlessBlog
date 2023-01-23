@@ -18,7 +18,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient
 			if (Preferences.Default.Get<bool>(Common.Constants.HasObtainedValidAccessTokenStorageName, false))
 			{
 				Ioc.Default.GetRequiredService<INavigationService>().
-					NavigateToRouteAsync(nameof(MainPage), false, Common.ShellNavigationSearchDirection.Down).SafeFireAndForget();
+					NavigateToRouteAsync(nameof(View.BlogPage), false, Common.ShellNavigationSearchDirection.Down).SafeFireAndForget();
 			}
 		}
 	}
