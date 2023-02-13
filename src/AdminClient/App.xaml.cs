@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
-using MSiccDev.ServerlessBlog.AdminClient.View;
-
+﻿using MSiccDev.ServerlessBlog.AdminClient.Services;
 namespace MSiccDev.ServerlessBlog.AdminClient
 {
     public partial class App
@@ -9,8 +7,12 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         {
             InitializeComponent();
 
-
+            //more inits
+            serviceProvider.GetRequiredService<ICacheService>().Init($"app_cache_{AppInfo.Current.PackageName}");
+            
             this.MainPage = new AppShell();
 		}
+
+
     }
 }

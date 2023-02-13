@@ -17,7 +17,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
         private HttpClient? _httpClient;
 		private string? _apiBaseUrl;
 
-		public BlogClient(IHttpClientFactory httpClientFactory, ILogger<IBlogClient> logger)
+        public BlogClient(IHttpClientFactory httpClientFactory, ILogger<BlogClient> logger)
         {
 			_httpClientFactory = httpClientFactory;
 			_logger = logger;

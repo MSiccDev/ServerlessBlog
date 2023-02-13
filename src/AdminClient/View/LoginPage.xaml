@@ -4,7 +4,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModel="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.ViewModel"
              x:Class="MSiccDev.ServerlessBlog.AdminClient.View.LoginPage"
-             x:DataType="viewModel:LoginPageViewModel" Shell.FlyoutBehavior="Disabled">
+             x:DataType="viewModel:LoginPageViewModel"
+             Shell.FlyoutBehavior="Disabled"
+             Shell.NavBarIsVisible="False">
     <ContentPage.Content>
         <Grid>
             <Grid.RowDefinitions>

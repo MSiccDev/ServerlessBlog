@@ -1,12 +1,88 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MSiccDev.ServerlessBlog.AdminClient.View.BlogPage"
-             Title="BlogPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             xmlns:systemIcons="clr-namespace:MSiccDev.Libs.Maui.SystemIcons;assembly=MSiccDev.Libs.Maui.SystemIcons"
+             xmlns:controls="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.Controls"
+             xmlns:viewmodel="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.ViewModel"
+             x:Class="MSiccDev.ServerlessBlog.AdminClient.View.BlogPage" x:DataType="viewmodel:BlogPageViewModel"
+             Title="Blog">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ReSharper disable Xaml.InvalidType -->
+            <controls:ImageEx Grid.Row="0" Grid.ColumnSpan="4"
+                              Source="{Binding BlogLogoUrl}" HeightRequest="300"
+                              PlaceholderImageSource="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=photo.fill}}" />
+            <ImageButton Grid.Row="1" Grid.Column="1"
+                         Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=plus.square.fill}}" />
+            <ImageButton Grid.Row="1" Grid.Column="2"
+                         Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=trash.fill}}" />
+            <!-- ReSharper restore Xaml.InvalidType -->
+        </Grid>
+
+
+        <controls:FramedContentControlWithText Grid.Row="1" Margin="12" Text="Logo Url">
+            <controls:EntryEx Placeholder="Url to your logo" Text="{Binding BlogLogoUrl}" Margin="12" />
+        </controls:FramedContentControlWithText>
+        <controls:FramedContentControlWithText Grid.Row="2" Margin="12" Text="Name">
+            <controls:EntryEx Placeholder="Your blog's name" Text="{Binding BlogName}" Margin="12" />
+        </controls:FramedContentControlWithText>
+        <controls:FramedContentControlWithText Grid.Row="3" Margin="12" Text="Slogan">
+            <controls:EntryEx Placeholder="Your blog's slogan" Text="{Binding Slogan}" Margin="12" />
+        </controls:FramedContentControlWithText>
+        <controls:FramedContentControlWithText Grid.Row="4" Margin="12" Text="Stats">
+            <Grid Margin="0,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Text="Posts:" FontSize="Default" Margin="12,6" />
+                <Label Grid.Row="0" Grid.Column="1" Text="{Binding PostCount}" FontSize="Medium" Margin="12,6" />
+
+                <Label Grid.Row="0" Grid.Column="2" Text="Authors:" FontSize="Default" Margin="12,6" />
+                <Label Grid.Row="0" Grid.Column="3" Text="{Binding AuthorCount}" FontSize="Medium" Margin="12,6" />
+
+                <Label Grid.Row="1" Grid.Column="0" Text="Tags:" FontSize="Default" Margin="12,6" />
+                <Label Grid.Row="1" Grid.Column="1" Text="{Binding TagCount}" FontSize="Medium" Margin="12,6" />
+
+                <Label Grid.Row="1" Grid.Column="2" Text="Media" FontSize="Default" Margin="12,6" />
+                <Label Grid.Row="1" Grid.Column="3" Text="{Binding MediaCount}" FontSize="Medium" Margin="12,6" />
+
+            </Grid>
+        </controls:FramedContentControlWithText>
+
+
+        <Button Text="Refresh" Grid.Row="8" Margin="8,4" />
+        <Button Text="Save" Grid.Row="9" Margin="8,4,8,12" />
+    </Grid>
 </ContentPage>

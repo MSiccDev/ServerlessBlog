@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using MSiccDev.Libs.Maui.SystemIcons;
 using MSiccDev.ServerlessBlog.AdminClient.Services;
 using MSiccDev.ServerlessBlog.AdminClient.View;
 using MSiccDev.ServerlessBlog.AdminClient.ViewModel;
 using MSiccDev.ServerlessBlog.ClientSdk;
-
 namespace MSiccDev.ServerlessBlog.AdminClient
 {
     public static class MauiProgram
@@ -17,10 +17,14 @@ namespace MSiccDev.ServerlessBlog.AdminClient
                     {
                         fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                         fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    }).ConfigureImageSources(services =>
+                    {
+                        services.AddService<ISfSymbolsImageSource, SfSymbolsImageSourceService>();
                     });
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
+            
             RegisterServices(builder.Services);
             RegisterViewModels(builder.Services);
             RegisterViews(builder.Services);
@@ -43,6 +47,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient
             serviceCollection.AddHttpClient();
             serviceCollection.AddSingleton<INavigationService, NavigationService>();
             serviceCollection.AddSingleton<IBlogClient, BlogClient>();
+
+            serviceCollection.AddSingleton<ICacheService, CacheService>();
         }
     }
 }

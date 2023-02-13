@@ -63,20 +63,26 @@
         <PackageReference Include="Microsoft.Identity.Client" Version="4.49.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.6" />
+        <PackageReference Include="MonkeyCache.SQLite" Version="2.0.1" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Model" />
       <Folder Include="Services\" />
+      <Folder Include="Controls\" />
     </ItemGroup>
 
     <ItemGroup>
       <None Remove="Services\" />
       <None Remove="AsyncAwaitBestPractices" />
+      <None Remove="Controls\" />
+      <None Remove="MonkeyCache.SQLite" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\ClientSdk\ClientSdk.csproj" />
+      <ProjectReference Include="..\..\..\Maui.SystemIcons\src\MSiccDev.Libs.Maui.SystemIcons.csproj" />
+      <ProjectReference Include="..\..\..\Maui.SystemColors\src\MSiccDev.Libs.Maui.SystemColors.csproj" />
     </ItemGroup>
     <ItemGroup>
       <MauiXaml Update="View\TagsPage.xaml">
