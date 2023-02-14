@@ -39,7 +39,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
         }
 
 
-		public async Task<BlogEntitySet<TEntity>> GetEntityList<TEntity>(string accessToken, Guid? blogId = null, int skip = 0, int count = 10, bool throwExceptions = true) where TEntity : DtoModelBase
+		public async Task<BlogEntitySet<TEntity>> GetEntityListAsync<TEntity>(string accessToken, Guid? blogId = null, int skip = 0, int count = 10, bool throwExceptions = true) where TEntity : DtoModelBase
         {
             try
             {
@@ -82,7 +82,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             }
         }
 
-        public async Task<BlogEntity<TEntity>> GetEntityList<TEntity>(string accessToken, Guid blogId, Guid? resourceId = null, bool includeDetails = false, bool throwExceptions = true)
+        public async Task<BlogEntity<TEntity>> GetEntityListAsync<TEntity>(string accessToken, Guid blogId, Guid? resourceId = null, bool includeDetails = false, bool throwExceptions = true)
             where TEntity : DtoModelBase
         {
             try
@@ -124,7 +124,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             }
         }
 
-        public async Task<Uri?> Create<TEntity>(string accessToken, TEntity entityToCreate, bool throwExceptions = true) where TEntity : DtoModelBase
+        public async Task<Uri?> CreateAsync<TEntity>(string accessToken, TEntity entityToCreate, bool throwExceptions = true) where TEntity : DtoModelBase
         {
             try
             {
@@ -172,7 +172,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             }
         }
 
-        public async Task<bool> Update<TEntity>(string accessToken, TEntity entityToUpdate, bool throwExceptions = true) where TEntity : DtoModelBase
+        public async Task<bool> UpdateAsync<TEntity>(string accessToken, TEntity entityToUpdate, bool throwExceptions = true) where TEntity : DtoModelBase
         {
             try
             {
@@ -220,7 +220,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             }
         }
 
-        public async Task<bool> Delete<TEntity>(string accessToken, Guid blogId, Guid? resourceId = null, bool throwExceptions = true) where TEntity : DtoModelBase
+        public async Task<bool> DeleteAsync<TEntity>(string accessToken, Guid blogId, Guid? resourceId = null, bool throwExceptions = true) where TEntity : DtoModelBase
         {
             try
             {

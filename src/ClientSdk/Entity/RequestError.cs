@@ -21,5 +21,11 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
 
         [JsonProperty("message")]
         public string? Message { get; set; }
+
+
+        public override string ToString() =>
+            // ReSharper disable HeapView.BoxingAllocation
+            $"StatusCode {this.StatusCode.GetValueOrDefault()}: {this.Message}";
+        // ReSharper restore HeapView.BoxingAllocation
     }
 }
