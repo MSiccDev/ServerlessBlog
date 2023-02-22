@@ -1,0 +1,171 @@
+﻿<!-- ReSharper disable Xaml.DynamicResourceError -->
+<Shell
+    x:Class="MSiccDev.ServerlessBlog.AdminClient.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:adminClient="clr-namespace:MSiccDev.ServerlessBlog.AdminClient"
+    xmlns:view="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.View"
+    xmlns:systemIcons="clr-namespace:MSiccDev.Libs.Maui.SystemIcons;assembly=MSiccDev.Libs.Maui.SystemIcons"
+    xmlns:controls="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.Controls"
+    FlyoutBehavior="Locked" Shell.NavBarIsVisible="False" x:Name="This"
+    FlyoutBackgroundColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemGroupedBackgroundColor}}"
+    >
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <Grid x:Name="FlyoutItemLayout"
+                  HeightRequest="60"
+                  ColumnSpacing="{OnPlatform WinUI=0, MacCatalyst=0}"
+                  RowSpacing="{OnPlatform WinUI=0, MacCatalyst=0}">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor"
+                                            Value="Transparent" />
+                                    <Setter Property="Label.TextColor"
+                                            TargetName="FlyoutItemLabel"
+                                            Value="{AppThemeBinding Dark=White, Light=Black}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Selected">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor"
+                                            Value="{AppThemeBinding Light=Black, Dark=White}" />
+                                    <Setter Property="Label.TextColor"
+                                            TargetName="FlyoutItemLabel"
+                                            Value="{AppThemeBinding Dark=Black, Light=White}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{OnPlatform Android=54, iOS=50, WinUI=Auto, MacCatalyst=Auto}" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <controls:ImageEx x:Name="FlyoutItemImage"
+                                  Source="{Binding FlyoutIcon}"
+                                  VerticalOptions="Center"
+                                  HorizontalOptions="{OnPlatform Default=Center, WinUI=Start, MacCatalyst=Start}"
+                                  HeightRequest="{OnPlatform Android=24, iOS=22, WinUI=16, MacCatalyst=32}"
+                                  WidthRequest="{OnPlatform Android=24, iOS=22, WinUI=16, MacCatalyst=32}"
+                                  TintColor="{Binding TintColor}">
+                    <Image.Margin>
+                        <OnPlatform x:TypeArguments="Thickness">
+                            <OnPlatform.Platforms>
+                                <On Platform="WinUI"
+                                    Value="12,0,12,0" />
+                                <On Platform="MacCatalyst"
+                                    Value="12,0,12,0" />
+                            </OnPlatform.Platforms>
+                        </OnPlatform>
+                    </Image.Margin>
+                </controls:ImageEx>
+                <Label x:Name="FlyoutItemLabel"
+                       Grid.Column="1"
+                       Text="{Binding Title}"
+                       FontSize="{OnPlatform Android=14, iOS=14, MacCatalyst=20}"
+                       FontAttributes="{OnPlatform iOS=Bold}"
+                       HorizontalOptions="{OnPlatform WinUI=Start, MacCatalyst=Start}"
+                       HorizontalTextAlignment="{OnPlatform WinUI=Start, MacCatalyst=Start}"
+                       VerticalTextAlignment="Center" />
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+
+    <Shell.FlyoutHeader>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Image Grid.Row="0"
+                   Source="serverless_blog_logo_temp.png"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <Label Grid.Row="1"
+                   Text="#CASBAN6"
+                   FontSize="Title"
+                   HorizontalOptions="Center"
+                   Margin="8" />
+
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <Shell.FlyoutFooter>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label x:Name="VersionLabel" Grid.Row="0"
+                   Text="Version 1.0.23061"
+                   FontSize="Default"
+                   HorizontalOptions="Center"
+                   Margin="8,0" />
+            <Label x:Name="CopyrightLabel" Grid.Row="1"
+                   Text="© MSiccDev Software Development"
+                   FontSize="Default"
+                   HorizontalOptions="Center"
+                   Margin="8,0,8,20" />
+        </Grid>
+    </Shell.FlyoutFooter>
+
+    <ShellItem Title="Login" FlyoutItemIsVisible="False">
+        <ShellContent Title="Login" ContentTemplate="{DataTemplate view:LoginPage}" Route="LoginPage" />
+    </ShellItem>
+
+
+    <!-- ReSharper disable Xaml.InvalidType -->
+    <!-- No InvalidType here, just an explicit implementation instead of System.Object -->
+    <controls:ShellContentEx
+        Title="Blog"
+        ContentTemplate="{DataTemplate view:BlogPage}"
+        Route="BlogPage"
+        Icon="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName='house.circle.fill'}}"
+        TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemBlue}}" />
+    <controls:ShellContentEx
+        Title="Posts"
+        ContentTemplate="{DataTemplate view:PostsPage}"
+        Route="PostsPage"
+        Icon="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName='list.bullet.circle.fill'}}"
+        TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemGreen}}" />
+    <controls:ShellContentEx
+        Title="Tags"
+        ContentTemplate="{DataTemplate view:TagsPage}"
+        Route="TagsPage"
+        Icon="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName='number.circle.fill'}}"
+        TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemPink}}" />
+    <controls:ShellContentEx
+        Title="Media"
+        ContentTemplate="{DataTemplate view:MediaPage}"
+        Route="MediaPage"
+        Icon="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName='photo.circle.fill'}}"
+        TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemOrange}}" />
+    <controls:ShellContentEx
+        Title="Authors"
+        ContentTemplate="{DataTemplate view:AuthorPage}"
+        Route="AuthorsPage"
+        Icon="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName='person.crop.circle.fill'}}"
+        TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemTeal}}" />
+    <controls:ShellContentEx
+        Title="Settings"
+        ContentTemplate="{DataTemplate view:SettingsPage}"
+        Route="SettingsPage"
+        Icon="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName='gear.circle.fill'}}"
+        TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemPurple}}" />
+    <controls:ShellContentEx
+        Title="About"
+        ContentTemplate="{DataTemplate view:AboutPage}"
+        Route="AboutPage"
+        Icon="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName='info.circle.fill'}}"
+        TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemMint}}" />
+
+    <!-- ReSharper restore Xaml.InvalidType -->
+
+</Shell>

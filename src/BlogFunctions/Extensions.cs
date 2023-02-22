@@ -5,7 +5,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public static class Extensions
     {
-        public static Dictionary<string, string> GetQueryParameterDictionary(this HttpRequestData req)
+        private static Dictionary<string, string> GetQueryParameterDictionary(this HttpRequestData req)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
 
@@ -43,20 +43,6 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 _ = int.TryParse(queryParams[nameof(skip)], out skip);
 
             return (count, skip);
-        }
-
-        public static bool IncludeDetails(this HttpRequestData req)
-        {
-            Dictionary<string, string> queryParams = req.GetQueryParameterDictionary();
-
-            bool includeDetails = false;
-            if (queryParams.Any(p => p.Key == nameof(includeDetails).ToLowerInvariant()))
-                _ = bool.TryParse(queryParams[nameof(includeDetails).ToLowerInvariant()], out includeDetails);
-
-            if (queryParams.Any(p => p.Key == nameof(includeDetails)))
-                _ = bool.TryParse(queryParams[nameof(includeDetails)], out includeDetails);
-
-            return includeDetails;
         }
         
 

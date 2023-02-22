@@ -16,10 +16,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
     {
         private const string Route = "blog/{blogId}/media";
 
-        public MediumFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext)
-        {
+        public MediumFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext) =>
             Logger = loggerFactory.CreateLogger<MediumFunction>();
-        }
 
         [OpenApiOperation("CREATE", "Medium", Description = "Creates a new medium for the specified blog in the database.", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("blogId", Type = typeof(Guid), Required = true, Description = "Id of the blog the new medium should live in")]
@@ -47,17 +45,13 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     await BlogContext.SaveChangesAsync();
 
                     return await req.CreateNewEntityCreatedResponseDataAsync(createdMedium.Entity.MediumId);
-
-
                 }
-                else {
-                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest,"Submitted data is invalid, media cannot be created.");
-                }
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, media cannot be created.");
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error creating medium object on blog with Id {BlogId}", blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -95,8 +89,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error getting medium list for blog with Id \'{Id}\'", blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
 
         }
@@ -137,8 +131,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error getting medium with Id '{MediumId}' for blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
 
         }
@@ -181,16 +175,12 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     return req.CreateResponse(HttpStatusCode.Accepted);
 
                 }
-                else
-                {
-
-                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest,"Submitted data is invalid, medium cannot be modified.");
-                }
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, medium cannot be modified.");
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error updating medium with Id '{MediumId}' for blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 
@@ -225,8 +215,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             }
             catch (Exception ex)
             {
-                //TODO: better handling of these cases...
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+                Logger.LogError(ex, "Error updating medium with Id '{MediumId}' from blog with Id \'{BlogId}\'", id, blogId);
+                return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
 

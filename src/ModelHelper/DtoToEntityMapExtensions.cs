@@ -2,49 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 using MSiccDev.ServerlessBlog.EntityModel;
-
 namespace MSiccDev.ServerlessBlog.ModelHelper
 {
     public static class DtoToEntityMapExtensions
     {
 
-        public static EntityModel.Blog CreateFrom(this DtoModel.Blog newBlog)
-        {
-            return new EntityModel.Blog()
+        public static Blog CreateFrom(this DtoModel.Blog newBlog) =>
+            new Blog
             {
-                BlogId = newBlog.BlogId == default ? Guid.NewGuid() : newBlog.BlogId,
+                BlogId = newBlog.BlogId.GetValueOrDefault() == default ? Guid.NewGuid() : newBlog.BlogId.GetValueOrDefault(),
                 Name = newBlog.Name,
                 Slogan = newBlog.Slogan,
                 LogoUrl = newBlog.LogoUrl
             };
-        }
 
-        public static EntityModel.Post CreateFrom(this DtoModel.Post newPost)
+        public static Post CreateFrom(this DtoModel.Post newPost)
         {
             List<PostTagMapping> postTagMappings = new List<PostTagMapping>();
 
             foreach (DtoModel.Tag tag in newPost.Tags)
             {
-                postTagMappings.Add(new PostTagMapping() { TagId = tag.TagId, PostId = newPost.PostId });
+                postTagMappings.Add(new PostTagMapping
+                    { TagId = tag.ResourceId.GetValueOrDefault(), PostId = newPost.ResourceId.GetValueOrDefault() });
             }
 
             List<PostMediumMapping> postMediumMappings = new List<PostMediumMapping>();
 
             foreach (DtoModel.Medium medium in newPost.Media)
             {
-                postMediumMappings.Add(new PostMediumMapping()
+                postMediumMappings.Add(new PostMediumMapping
                 {
-                    MediumId = medium.MediumId,
-                    PostId = newPost.PostId,
-                    AsFeatuerdOnPost = medium?.IsPostImage ?? false
+                    MediumId = medium.ResourceId.GetValueOrDefault(),
+                    PostId = newPost.ResourceId.GetValueOrDefault(),
+                    AsFeatuerdOnPost = medium.IsPostImage ?? false
                 });
             }
 
-            EntityModel.Post result = new EntityModel.Post()
+            Post result = new Post
             {
-                PostId = newPost.PostId,
-                BlogId = newPost.BlogId,
-                AuthorId = newPost.Author.AuthorId,
+                PostId = newPost.ResourceId.GetValueOrDefault(),
+                BlogId = newPost.BlogId.GetValueOrDefault(),
+                AuthorId = newPost.Author.ResourceId.GetValueOrDefault(),
                 Title = newPost.Title,
                 Content = newPost.Content,
                 Published = newPost.Published,
@@ -57,75 +55,67 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             return result;
         }
 
-        public static EntityModel.Author CreateFrom(this DtoModel.Author dto, Guid blogId)
-        {
-            return new EntityModel.Author()
+        public static Author CreateFrom(this DtoModel.Author dto, Guid blogId) =>
+            new Author
             {
                 BlogId = blogId,
-                AuthorId = dto.AuthorId,
+                AuthorId = dto.ResourceId.GetValueOrDefault(),
                 DisplayName = dto.DisplayName,
                 UserName = dto.UserName,
-                UserImageId = dto.UserImage?.MediumId
+                UserImageId = dto.UserImage?.ResourceId.GetValueOrDefault()
             };
-        }
 
-        public static EntityModel.Medium CreateFrom(this DtoModel.Medium dto, Guid blogId)
-        {
-            return new EntityModel.Medium()
+        public static Medium CreateFrom(this DtoModel.Medium dto, Guid blogId) =>
+            new Medium
             {
                 BlogId = blogId,
-                MediumId = dto.MediumId,
-                MediumTypeId = dto.MediumType?.MediumTypeId ?? default,
+                MediumId = dto.ResourceId.GetValueOrDefault(),
+                MediumTypeId = dto.MediumType?.ResourceId.GetValueOrDefault() ?? default,
                 MediumUrl = dto.MediumUrl,
                 AlternativeText = dto.AlternativeText,
                 Description = dto.Description,
             };
-        }
 
-        public static EntityModel.MediumType CreateFrom(this DtoModel.MediumType dto)
-        {
-            return new EntityModel.MediumType()
+        public static MediumType CreateFrom(this DtoModel.MediumType dto) =>
+            new MediumType
             {
-                MediumTypeId = dto.MediumTypeId,
+                MediumTypeId = dto.ResourceId.GetValueOrDefault(),
                 Encoding = dto.Encoding,
                 MimeType = dto.MimeType,
                 Name = dto.Name
             };
-        }
 
-        public static EntityModel.Tag CreateFrom(this DtoModel.Tag dto, Guid blogId)
-        {
-            return new EntityModel.Tag()
+        public static Tag CreateFrom(this DtoModel.Tag dto, Guid blogId) =>
+            new Tag
             {
-                TagId = dto.TagId,
+                TagId = dto.ResourceId.GetValueOrDefault(),
                 Name = dto.Name,
                 Slug = dto.Slug,
                 BlogId = blogId
             };
-        }
 
 
 
-        public static EntityModel.Blog UpdateWith(this EntityModel.Blog existingBlog, DtoModel.Blog updatedblog)
+        public static Blog UpdateWith(this Blog existingBlog, DtoModel.Blog updatedBlog)
         {
-            if (existingBlog.BlogId != updatedblog.BlogId)
+            if (existingBlog.BlogId != updatedBlog.BlogId)
                 throw new ArgumentException("BlogId must be equal in UPDATE operation.");
 
-            if (existingBlog.Name != updatedblog.Name)
-                existingBlog.Name = updatedblog.Name;
+            if (existingBlog.Name != updatedBlog.Name)
+                existingBlog.Name = updatedBlog.Name;
 
-            if (existingBlog.Slogan != updatedblog.Slogan)
-                existingBlog.Slogan = existingBlog.Slogan;
+            if (existingBlog.Slogan != updatedBlog.Slogan)
+                existingBlog.Slogan = updatedBlog.Slogan;
 
-            if (existingBlog.LogoUrl != updatedblog.LogoUrl)
+            if (existingBlog.LogoUrl != updatedBlog.LogoUrl)
                 existingBlog.LogoUrl = existingBlog.LogoUrl;
 
             return existingBlog;
         }
 
-        public static EntityModel.Post UpdateWith(this EntityModel.Post existingPost, DtoModel.Post updatedPost)
+        public static Post UpdateWith(this Post existingPost, DtoModel.Post updatedPost)
         {
-            if (existingPost.PostId != updatedPost.PostId)
+            if (existingPost.PostId != updatedPost.ResourceId.GetValueOrDefault())
                 throw new ArgumentException("PostId must be equal in UPDATE operation.");
 
             bool hasUpdates = false;
@@ -141,9 +131,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
                 hasUpdates = true;
             }
 
-            if (existingPost.AuthorId != (updatedPost.Author?.AuthorId ?? default))
+            if (existingPost.AuthorId != (updatedPost.Author?.ResourceId.GetValueOrDefault() ?? default))
             {
-                existingPost.AuthorId = updatedPost.Author?.AuthorId ?? default;
+                existingPost.AuthorId = updatedPost.Author?.ResourceId.GetValueOrDefault() ?? default;
                 hasUpdates = true;
             }
             if (existingPost.Slug != updatedPost.Slug)
@@ -153,16 +143,16 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             }
 
             List<Guid> noLongerDeliveredTagIds = existingPost.Tags.Select(tag => tag.TagId).
-                                                                 Except(updatedPost.Tags.Select(tag => tag.TagId)).
+                                                              Except(updatedPost.Tags.Select(tag => tag.ResourceId.GetValueOrDefault())).
                                                                  ToList();
-            List<Guid> newDeliveredTagIds = updatedPost.Tags.Select(tag => tag.TagId).
-                                                           Except(existingPost.Tags.Select(tag => tag.TagId)).ToList();
+            List<Guid> newDeliveredTagIds = updatedPost.Tags.Select(tag => tag.ResourceId.GetValueOrDefault()).
+                                                        Except(existingPost.Tags.Select(tag => tag.TagId)).ToList();
 
             if (noLongerDeliveredTagIds.Any())
             {
                 foreach (Guid id in noLongerDeliveredTagIds)
                 {
-                    EntityModel.Tag tagToRemove = existingPost.Tags.SingleOrDefault(tag => tag.TagId == id);
+                    Tag tagToRemove = existingPost.Tags.SingleOrDefault(tag => tag.TagId == id);
                     existingPost.Tags.Remove(tagToRemove);
                 }
 
@@ -173,7 +163,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             {
                 foreach (Guid id in newDeliveredTagIds)
                 {
-                    EntityModel.Tag tagToAdd = updatedPost.Tags.SingleOrDefault(tag => tag.TagId == id).CreateFrom(existingPost.BlogId);
+                    Tag tagToAdd = updatedPost.Tags.SingleOrDefault(tag => tag.ResourceId.GetValueOrDefault() == id).CreateFrom(existingPost.BlogId);
                     existingPost.Tags.Add(tagToAdd);
                 }
 
@@ -186,9 +176,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             return existingPost;
         }
 
-        public static EntityModel.Author UpdateWith(this EntityModel.Author existingAuthor, DtoModel.Author updatedAuthor)
+        public static Author UpdateWith(this Author existingAuthor, DtoModel.Author updatedAuthor)
         {
-            if (existingAuthor.AuthorId != updatedAuthor.AuthorId)
+            if (existingAuthor.AuthorId != updatedAuthor.ResourceId.GetValueOrDefault())
                 throw new ArgumentException("AuthorId must be equal in UPDATE operation.");
 
             if (existingAuthor.DisplayName != updatedAuthor.DisplayName)
@@ -197,15 +187,15 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             if (existingAuthor.UserName != updatedAuthor.UserName)
                 existingAuthor.UserName = updatedAuthor.UserName;
 
-            if (existingAuthor.UserImageId != updatedAuthor.UserImage.MediumId)
-                existingAuthor.UserImageId = updatedAuthor.UserImage.MediumId;
+            if (existingAuthor.UserImageId != updatedAuthor.UserImage.ResourceId.GetValueOrDefault())
+                existingAuthor.UserImageId = updatedAuthor.UserImage.ResourceId.GetValueOrDefault();
 
             return existingAuthor;
         }
 
-        public static EntityModel.Tag UpdateWith(this EntityModel.Tag existingTag, DtoModel.Tag updatedTag)
+        public static Tag UpdateWith(this Tag existingTag, DtoModel.Tag updatedTag)
         {
-            if (existingTag.TagId != updatedTag.TagId)
+            if (existingTag.TagId != updatedTag.ResourceId.GetValueOrDefault())
                 throw new ArgumentException("TagId must be equal in UPDATE operation.");
 
             if (existingTag.Name != updatedTag.Name)
@@ -217,9 +207,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             return existingTag;
         }
 
-        public static EntityModel.Medium UpdateWith(this EntityModel.Medium existingMedium, DtoModel.Medium updatedMedium)
+        public static Medium UpdateWith(this Medium existingMedium, DtoModel.Medium updatedMedium)
         {
-            if (existingMedium.MediumId != updatedMedium.MediumId)
+            if (existingMedium.MediumId != updatedMedium.ResourceId.GetValueOrDefault())
                 throw new ArgumentException("MediumId must be equal in UPDATE operation.");
 
             if (existingMedium.AlternativeText != updatedMedium.AlternativeText)
@@ -228,8 +218,8 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             if (existingMedium.Description != updatedMedium.Description)
                 existingMedium.Description = updatedMedium.Description;
 
-            if (existingMedium.MediumTypeId != updatedMedium.MediumType.MediumTypeId)
-                existingMedium.MediumTypeId = updatedMedium.MediumType.MediumTypeId;
+            if (existingMedium.MediumTypeId != updatedMedium.MediumType.ResourceId.GetValueOrDefault())
+                existingMedium.MediumTypeId = updatedMedium.MediumType.ResourceId.GetValueOrDefault();
 
             if (existingMedium.MediumUrl != updatedMedium.MediumUrl)
                 existingMedium.MediumUrl = updatedMedium.MediumUrl;
@@ -237,9 +227,9 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             return existingMedium;
         }
 
-        public static EntityModel.MediumType UpdateWith(this EntityModel.MediumType existingMediumType, DtoModel.MediumType updatedMediumType)
+        public static MediumType UpdateWith(this MediumType existingMediumType, DtoModel.MediumType updatedMediumType)
         {
-            if (existingMediumType.MediumTypeId != updatedMediumType.MediumTypeId)
+            if (existingMediumType.MediumTypeId != updatedMediumType.ResourceId.GetValueOrDefault())
                 throw new ArgumentException("MediumId must be equal in UPDATE operation.");
 
             if (existingMediumType.Name != updatedMediumType.Name)

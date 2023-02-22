@@ -71,8 +71,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 			}
 			catch (Exception ex)
 			{
-				//TODO: better handling of these cases...
-				return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+				_logger.LogError(ex, "Error creating blog object");
+				return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 			}
 		}
 
@@ -80,7 +80,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 		[OpenApiOperation("GET", "Blog", Description = "Gets a list of blogs from the database.", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiParameter("skip", In = ParameterLocation.Query, Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiParameter("count", In = ParameterLocation.Query, Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<Blog>), Description = "Gets a list of blogs when no Id is specified or a single blog filtered by the specified Id")]
+		[OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<BlogOverview>), Description = "Gets a list of blogs with children counts")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
 		[Function($"{nameof(BlogFunction)}_{nameof(GetBlogList)}")]
@@ -90,6 +90,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 			{
 				_logger.LogInformation("Trying to get blogs");
 
+				List<BlogOverview> resultSet = new List<BlogOverview>();
 				(int count, int skip) = req.GetPagingProperties();
 
 				List<EntityModel.Blog> entityResultSet = await _blogContext.Blogs.
@@ -97,25 +98,30 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 				                                                            Take(count).
 				                                                            ToListAsync();
 
+				foreach (EntityModel.Blog result in entityResultSet)
+				{
+					int authorCount = await _blogContext.Authors.CountAsync(author => author.BlogId == result.BlogId);
+					int mediaCount = await _blogContext.Media.CountAsync(medium => medium.BlogId == result.BlogId);
+					int tagsCount = await _blogContext.Tags.CountAsync(tag => tag.BlogId == result.BlogId);
+					int postsCount = await _blogContext.Posts.CountAsync(post => post.BlogId == result.BlogId);
 
-				//always just return the plain blog list, details should be loaded per blog as they can be MASSIVE
-				List<Blog> resultSet = entityResultSet.Select(entity => entity.ToDto(false)).
-				                                       ToList();
+					BlogOverview overViewResult = new BlogOverview(result.ToDto(false), authorCount, mediaCount, tagsCount, postsCount);
+					resultSet.Add(overViewResult);
+				}
 
 				return await req.CreateOkResponseDataWithJsonAsync(resultSet, _jsonSerializerSettings);
 			}
 			catch (Exception ex)
 			{
-				//TODO: better handling of these cases...
-				return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+				_logger.LogError(ex, "Error getting blog list");
+				return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 			}
 		}
 
 
 		[OpenApiOperation("GET", "Blog", Description = "Gets a blog by its id from the database.", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true, Description = "Id of the desired blog", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiParameter("includeDetails", In = ParameterLocation.Query, Required = true, Type = typeof(bool), Description = "Control if response should contain Posts, Tags, Media and Authors. Warning: This could result in a very large .json. Treat this as full export.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Blog), Description = "Gets a single blog filtered by the specified Id")]
+		[OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Blog), Description = "Gets a single blog filtered by the specified Id. Warning: This can result in a very big json!")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No blog with the specified id was found")]
 		[OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
@@ -126,53 +132,44 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 			{
 				if (!string.IsNullOrWhiteSpace(id))
 				{
-					EntityModel.Blog? existingBlog;
-					bool includeDetails = req.IncludeDetails();
+					EntityModel.Blog? existingBlog = await _blogContext.Blogs.
+					                                                    Include(blog => blog.Authors).
+					                                                    ThenInclude(author => author.UserImage).
+					                                                    ThenInclude(medium => medium.MediumType).
+					                                                    Include(blog => blog.Media).
+					                                                    ThenInclude(medium => medium.MediumType).
+					                                                    Include(blog => blog.Tags).
+					                                                    Include(blog => blog.Posts).
+					                                                    ThenInclude(post => post.Author).
+					                                                    ThenInclude(author => author.UserImage).
+					                                                    ThenInclude(medium => medium.MediumType).
+					                                                    Include(blog => blog.Posts).
+					                                                    ThenInclude(post => post.Media).
+					                                                    ThenInclude(media => media.MediumType).
+					                                                    Include(blog => blog.Posts).
+					                                                    ThenInclude(post => post.Tags).
+					                                                    Include(blog => blog.Posts).
+					                                                    ThenInclude(post => post.PostTagMappings).
+					                                                    Include(blog => blog.Posts).
+					                                                    ThenInclude(post => post.PostMediumMappings).
+					                                                    SingleOrDefaultAsync(blog => blog.BlogId == Guid.Parse(id));
 
-					if (includeDetails)
-					{
-						existingBlog = await _blogContext.Blogs.
-						                                  Include(blog => blog.Authors).
-						                                  ThenInclude(author => author.UserImage).
-						                                  ThenInclude(medium => medium.MediumType).
-						                                  Include(blog => blog.Media).
-						                                  ThenInclude(medium => medium.MediumType).
-						                                  Include(blog => blog.Tags).
-						                                  Include(blog => blog.Posts).
-						                                  ThenInclude(post => post.Author).
-						                                  ThenInclude(author => author.UserImage).
-						                                  ThenInclude(medium => medium.MediumType).
-						                                  Include(blog => blog.Posts).
-						                                  ThenInclude(post => post.Media).
-						                                  ThenInclude(media => media.MediumType).
-						                                  Include(blog => blog.Posts).
-						                                  ThenInclude(post => post.Tags).
-						                                  Include(blog => blog.Posts).
-						                                  ThenInclude(post => post.PostTagMappings).
-						                                  Include(blog => blog.Posts).
-						                                  ThenInclude(post => post.PostMediumMappings).
-						                                  SingleOrDefaultAsync(blog => blog.BlogId == Guid.Parse(id));
-					}
-					else
-					{
-						existingBlog = await _blogContext.Blogs.SingleOrDefaultAsync(blog => blog.BlogId == Guid.Parse(id));
-					}
 
 					if (existingBlog == null)
 					{
-						_logger.LogWarning("Blog with Id {Id} not found", id);
+						_logger.LogWarning("Blog with Id \'{Id}\' not found", id);
 						return req.CreateResponse(HttpStatusCode.NotFound);
 					}
 
-					return await req.CreateOkResponseDataWithJsonAsync(existingBlog.ToDto(includeDetails), _jsonSerializerSettings);
+					return await req.CreateOkResponseDataWithJsonAsync(existingBlog.ToDto(), _jsonSerializerSettings);
 				}
 
 				return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted data is invalid, must specify BlogId");
 			}
 			catch (Exception ex)
 			{
-				//TODO: better handling of these cases...
-				return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+				_logger.LogError(ex, "Error getting blog object with Id \'{Id}\'", id);
+				return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 			}
 		}
 
@@ -212,8 +209,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 			}
 			catch (Exception ex)
 			{
-				//TODO: better handling of these cases...
-				return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+				_logger.LogError(ex, "Error updating blog with Id \'{Id}\'", id);
+				return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 			}
 		}
 
@@ -252,7 +249,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 				if (existingBlog == null)
 				{
-					_logger.LogWarning("Post with Id {Id} not found", id);
+					_logger.LogWarning("Post with Id \'{Id}\' not found", id);
 					return req.CreateResponse(HttpStatusCode.NotFound);
 				}
 
@@ -263,8 +260,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 			}
 			catch (Exception ex)
 			{
-				//TODO: better handling of these cases...
-				return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, ex.ToString());
+				_logger.LogError(ex, "Error deleting blog with Id \'{Id}\'", id);
+				return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 			}
 		}
 

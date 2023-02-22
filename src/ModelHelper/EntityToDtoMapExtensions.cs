@@ -10,10 +10,10 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new Author
             {
-                AuthorId = entity.AuthorId,
+                ResourceId = entity.AuthorId,
                 DisplayName = entity.DisplayName,
                 UserName = entity.UserName,
-                UserImage = entity.UserImage != null ? entity.UserImage.ToDto() : null,
+                UserImage = entity.UserImage?.ToDto()
             };
         }
 
@@ -22,13 +22,13 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             return new Blog
             {
                 BlogId = entity.BlogId,
-                Authors = entity.Authors != null ? entity.Authors.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Author>() : null),
+                Authors = entity.Authors != null ? entity.Authors.Select(author => author.ToDto()).ToList() : includeEmpty ? new List<Author>() : null,
                 Name = entity.Name,
                 Slogan = entity.Slogan,
-                Posts = entity.Posts != null ? entity.Posts.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Post>() : null),
-                Media = entity.Media != null ? entity.Media.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Medium>() : null),
+                Posts = entity.Posts != null ? entity.Posts.Select(post => post.ToDto()).ToList() : includeEmpty ? new List<Post>() : null,
+                Media = entity.Media != null ? entity.Media.Select(medium => medium.ToDto()).ToList() : includeEmpty ? new List<Medium>() : null,
                 LogoUrl = entity.LogoUrl,
-                Tags = entity.Tags != null ? entity.Tags.Select(entity => entity.ToDto()).ToList() : (includeEmpty ? new List<Tag>() : null)
+                Tags = entity.Tags != null ? entity.Tags.Select(tag => tag.ToDto()).ToList() : includeEmpty ? new List<Tag>() : null
             };
         }
 
@@ -36,7 +36,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new Medium
             {
-                MediumId = entity.MediumId,
+                ResourceId = entity.MediumId,
                 MediumType = entity.MediumType.ToDto(),
                 MediumUrl = entity.MediumUrl,
                 AlternativeText = entity.AlternativeText,
@@ -48,7 +48,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new MediumType
             {
-                MediumTypeId = entity.MediumTypeId,
+                ResourceId = entity.MediumTypeId,
                 MimeType = entity.MimeType,
                 Name = entity.Name,
                 Encoding = entity.Encoding
@@ -59,7 +59,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new Tag
             {
-                TagId = entity.TagId,
+                ResourceId = entity.TagId,
                 Name = entity.Name,
                 Slug = entity.Slug
             };
@@ -69,7 +69,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             Post result = new Post
             {
-                PostId = entity.PostId,
+                ResourceId = entity.PostId,
                 BlogId = entity.BlogId,
                 Author = entity.Author?.ToDto(),
                 Title = entity.Title,
@@ -77,8 +77,8 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
                 LastModified = entity.LastModified,
                 Published = entity.Published,
                 Slug = entity.Slug,
-                Tags = entity.Tags?.Select(entity => entity.ToDto()).ToList(),
-                Media = entity.Media?.Select(entity => entity.ToDto()).ToList()
+                Tags = entity.Tags?.Select(tag => tag.ToDto()).ToList(),
+                Media = entity.Media?.Select(medium => medium.ToDto()).ToList()
             };
 
             if (result.Media == null)
@@ -88,8 +88,8 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
             {
                 medium.IsPostImage = entity.PostMediumMappings?.
                                             SingleOrDefault(mapping =>
-                                                mapping.MediumId == medium.MediumId &&
-                                                mapping.PostId == result.PostId
+                                                mapping.MediumId == medium.ResourceId &&
+                                                mapping.PostId == result.ResourceId
                                             )?.AsFeatuerdOnPost ?? false;
             }
 

@@ -350,7 +350,7 @@ MigrationBackup/
 .ionide/
 
 #custom adds
-*.DS_Store
+**/.DS_Store
 src/nuget.config
 
 src/EFCore.DesignDummy/Migrations/*

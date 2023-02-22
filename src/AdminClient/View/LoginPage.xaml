@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModel="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.ViewModel"
+             x:Class="MSiccDev.ServerlessBlog.AdminClient.View.LoginPage"
+             x:DataType="viewModel:LoginPageViewModel"
+             Shell.FlyoutBehavior="Disabled"
+             Shell.NavBarIsVisible="False">
+    <ContentPage.Content>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+
+            <Image Grid.Row="1"
+                   Source="serverless_blog_logo_temp.png"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+
+            <Label Grid.Row="2"
+                   Text="Login"
+                   FontSize="Title"
+                   HorizontalOptions="Center"
+                   Margin="8" />
+
+            <StackLayout Grid.Row="3" WidthRequest="400" HorizontalOptions="Center" Margin="8">
+                <Label Text="Azure Function base url:" />
+                <Entry Placeholder="https://{appName}.azurewebsites.net"
+                       Text="{Binding AzureFunctionBaseUrl}" />
+            </StackLayout>
+
+            <StackLayout Grid.Row="4" WidthRequest="400" HorizontalOptions="Center" Margin="8">
+                <Label Text="Azure Active Directory Tenant ID:" />
+                <Entry Placeholder="tenantId"
+                       Text="{Binding AzureTenantId}" />
+            </StackLayout>
+
+            <StackLayout Grid.Row="5" WidthRequest="400" HorizontalOptions="Center" Margin="8">
+                <Label Text="Azure Active Directory Client ID:" />
+                <Entry Placeholder="clientID"
+                       Text="{Binding AzureAdClientId}" />
+            </StackLayout>
+
+            <StackLayout Grid.Row="6" WidthRequest="400" HorizontalOptions="Center" Margin="8">
+                <Label Text="Application callback url:" />
+                <Entry Placeholder="http://callbackUrl"
+                       Text="{Binding AzureAdCallbackUrl}" />
+            </StackLayout>
+
+            <StackLayout Grid.Row="7" WidthRequest="400" HorizontalOptions="Center" Margin="8">
+                <Label Text="Add scope to scopes list:" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80*" />
+                        <ColumnDefinition Width="20*" />
+                    </Grid.ColumnDefinitions>
+                    <Entry Placeholder="https://graph.microsoft.com/User.Read"
+                           Grid.Column="0"
+                           Text="{Binding AzureAdScopeToAdd}"
+                           ReturnCommand="{Binding AddAzureAdScopeCommand}"
+                           ReturnType="Done"
+                           ClearButtonVisibility="WhileEditing"
+                           IsTextPredictionEnabled="False"
+                           IsSpellCheckEnabled="False" />
+                    <Button Grid.Column="1" Text="Add" Margin="8,0,0,0"
+                            Command="{Binding AddAzureAdScopeCommand}" />
+                </Grid>
+                <CollectionView ItemsSource="{Binding AzureAdScopes}"
+                                Header="Added scopes (tap to remove):"
+                                SelectionMode="Single" HeightRequest="100"
+                                SelectedItem="{Binding AzureAdScopeToRemove, Mode=TwoWay}" />
+
+            </StackLayout>
+
+            <Button Grid.Row="8" Margin="8"
+                    Text="Authenticate"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    HeightRequest="48"
+                    WidthRequest="200" Command="{Binding AuthorizationCommand}" />
+
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>
