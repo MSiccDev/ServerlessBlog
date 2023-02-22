@@ -44,20 +44,6 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             return (count, skip);
         }
-
-        public static bool IncludeDetails(this HttpRequestData req)
-        {
-            Dictionary<string, string> queryParams = req.GetQueryParameterDictionary();
-
-            bool includeDetails = false;
-            if (queryParams.Any(p => p.Key == nameof(includeDetails).ToLowerInvariant()))
-                _ = bool.TryParse(queryParams[nameof(includeDetails).ToLowerInvariant()], out includeDetails);
-
-            if (queryParams.Any(p => p.Key == nameof(includeDetails)))
-                _ = bool.TryParse(queryParams[nameof(includeDetails)], out includeDetails);
-
-            return includeDetails;
-        }
         
 
         public static async Task<HttpResponseData> CreateResponseDataAsync(this HttpRequestData req, HttpStatusCode statusCode, string? message)
