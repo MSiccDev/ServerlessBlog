@@ -27,8 +27,8 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
         {
             if (!string.IsNullOrWhiteSpace(apiBaseUrl))
             {
-                if (!apiBaseUrl.EndsWith("/blog"))
-                    _apiBaseUrl = $"{apiBaseUrl}/blog".Replace("//", "/");
+                if (!apiBaseUrl.EndsWith("/api/blog"))
+                    _apiBaseUrl = $"{apiBaseUrl}/api/blog";
             }
             else
             {
@@ -39,7 +39,8 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
         }
 
 
-		public async Task<BlogEntitySet<TEntity>> GetEntityListAsync<TEntity>(string accessToken, Guid? blogId = null, int skip = 0, int count = 10, bool throwExceptions = true) where TEntity : DtoModelBase
+        public async Task<BlogEntitySet<TEntity>> GetEntitiesAsync<TEntity>(string accessToken, Guid? blogId = null, Guid? resourceId = null, int skip = 0, int count = 10, bool throwExceptions = true)
+            where TEntity : DtoModelBase
         {
             try
             {
@@ -49,14 +50,14 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
                 if (string.IsNullOrWhiteSpace(accessToken))
                     throw new ArgumentException("Value cannot be null or whitespace.", nameof(accessToken));
 
-                string requestUrl = blogId == null
-                    ? $"{_apiBaseUrl}".
-                      AddParameterToUri(nameof(skip), skip.ToString()).
-                      AddParameterToUri(nameof(count), count.ToString())
-                    : $"{_apiBaseUrl}/{blogId.ToString()}/{typeof(TEntity).GetResourceName()}".
-                      AddParameterToUri(nameof(skip), skip.ToString()).
-                      AddParameterToUri(nameof(count), count.ToString());
+                string requestUrl = blogId == null ? $"{_apiBaseUrl}" : $"{_apiBaseUrl}/{blogId.ToString()}/{typeof(TEntity).GetResourceName()}";
 
+                if (blogId != null)
+                    requestUrl = resourceId == null ? requestUrl : $"{requestUrl}/{resourceId.ToString()}";
+
+                requestUrl = requestUrl.AddParameterToUri(nameof(skip), skip.ToString()).
+                                        AddParameterToUri(nameof(count), count.ToString());
+                
                 HttpRequestMessage request = new HttpRequestMessage
                 {
                     Method = HttpMethod.Get,
@@ -71,53 +72,11 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting list of {EntityType}", typeof(TEntity));
+                _logger.LogError(ex, "Error getting entity set of type '{EntityType}'", typeof(TEntity));
 
                 if (!throwExceptions)
                 {
                     return new BlogEntitySet<TEntity>(ex);
-                }
-
-                throw;
-            }
-        }
-
-        public async Task<BlogEntity<TEntity>> GetEntityListAsync<TEntity>(string accessToken, Guid blogId, Guid? resourceId = null, bool includeDetails = false, bool throwExceptions = true)
-            where TEntity : DtoModelBase
-        {
-            try
-            {
-				if (_httpClient == null)
-					throw new ArgumentException("Please call the Init method first.", nameof(_httpClient));
-
-				if (string.IsNullOrWhiteSpace(accessToken))
-                    throw new ArgumentException("Value cannot be null or whitespace.", nameof(accessToken));
-
-                string requestUrl = resourceId == null
-                    ? $"{_apiBaseUrl}/{blogId.ToString()}/{typeof(TEntity).GetResourceName()}".
-                        AddParameterToUri(nameof(includeDetails), includeDetails.ToString())
-                    : $"{_apiBaseUrl}/{blogId.ToString()}/{typeof(TEntity).GetResourceName()}/{resourceId.ToString()}".
-                        AddParameterToUri(nameof(includeDetails), includeDetails.ToString());
-
-                HttpRequestMessage request = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Get,
-                    RequestUri = new Uri(requestUrl)
-                };
-
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                HttpResponseMessage responseMessage = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
-
-                return new BlogEntity<TEntity>(responseMessage.Content, responseMessage.StatusCode, throwExceptions);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting {EntityType}", typeof(TEntity));
-
-                if (!throwExceptions)
-                {
-                    return new BlogEntity<TEntity>(ex);
                 }
 
                 throw;

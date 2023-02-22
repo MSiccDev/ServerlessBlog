@@ -11,6 +11,7 @@ namespace MSiccDev.ServerlessBlog.DtoModel
 
         public BlogOverview(Blog blog, int authorsCount, int mediaCount, int tagCount, int postCount)
         {
+            this.BlogId = blog.BlogId;
             this.Name = blog.Name;
             this.Slogan = blog.Slogan;
             this.LogoUrl = blog.LogoUrl;
