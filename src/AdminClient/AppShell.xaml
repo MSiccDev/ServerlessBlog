@@ -104,7 +104,7 @@
             </Grid.RowDefinitions>
 
             <Label x:Name="VersionLabel" Grid.Row="0"
-                   Text="Version 1.0.23061"
+                   Text="Version 1.0.23081"
                    FontSize="Default"
                    HorizontalOptions="Center"
                    Margin="8,0" />

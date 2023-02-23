@@ -8,14 +8,15 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         public App(IServiceProvider serviceProvider) : base(serviceProvider)
         {
             InitializeComponent();
-
+            
+            //Preferences.Default.Set(Constants.HasObtainedValidAccessTokenStorageName, false);
+            
             //more inits
             serviceProvider.GetRequiredService<IBlogClient>().Init(SecureStorage.Default.GetAsync(Constants.AzureFunctionBaseUrlStorageName).GetAwaiter().GetResult());
             serviceProvider.GetRequiredService<ICacheService>().Init($"app_cache_{AppInfo.Current.PackageName}");
             
             this.MainPage = new AppShell();
 		}
-
 
     }
 }
