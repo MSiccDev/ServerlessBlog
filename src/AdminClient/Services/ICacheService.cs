@@ -5,6 +5,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
     {
         void Init(string id, string? path = null);
 
+
+        event EventHandler? AuthorizationExpired;
         Task<List<BlogOverview>?> GetBlogsAsync(int cacheValidity = 30, bool forceRefresh = false);
         Task<List<Author>?> GetAuthorsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false);
         Task<List<Tag>?> GetTagsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false);

@@ -7,9 +7,11 @@
     xmlns:view="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.View"
     xmlns:systemIcons="clr-namespace:MSiccDev.Libs.Maui.SystemIcons;assembly=MSiccDev.Libs.Maui.SystemIcons"
     xmlns:controls="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.Controls"
+    xmlns:viewModel="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.ViewModel"
     FlyoutBehavior="Locked" Shell.NavBarIsVisible="False" x:Name="This"
     FlyoutBackgroundColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemGroupedBackgroundColor}}"
     >
+    
     <Shell.ItemTemplate>
         <DataTemplate>
             <Grid x:Name="FlyoutItemLayout"
@@ -76,7 +78,7 @@
 
 
     <Shell.FlyoutHeader>
-        <Grid>
+        <Grid x:DataType="viewModel:AppShellViewModel">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -88,7 +90,7 @@
                    VerticalOptions="Center" />
 
             <Label Grid.Row="1"
-                   Text="#CASBAN6"
+                   Text="{Binding ApplicationTitle}"
                    FontSize="Title"
                    HorizontalOptions="Center"
                    Margin="8" />
@@ -97,20 +99,20 @@
     </Shell.FlyoutHeader>
 
     <Shell.FlyoutFooter>
-        <Grid>
+        <Grid x:DataType="viewModel:AppShellViewModel">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Label x:Name="VersionLabel" Grid.Row="0"
-                   Text="Version 1.0.23081"
+                   Text="{Binding VersionString}"
                    FontSize="Default"
                    HorizontalOptions="Center"
                    Margin="8,0" />
             <Label x:Name="CopyrightLabel" Grid.Row="1"
-                   Text="© MSiccDev Software Development"
-                   FontSize="Default"
+                   Text="{Binding CopyRightString}"
+                   FontSize="Small"
                    HorizontalOptions="Center"
                    Margin="8,0,8,20" />
         </Grid>

@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.Extensions.Logging;
 using MonkeyCache;
 using MonkeyCache.SQLite;
@@ -5,7 +6,6 @@ using MSiccDev.ServerlessBlog.AdminClient.Common;
 using MSiccDev.ServerlessBlog.ClientSdk;
 using MSiccDev.ServerlessBlog.DtoModel;
 using Newtonsoft.Json;
-
 namespace MSiccDev.ServerlessBlog.AdminClient.Services
 {
     public class CacheService : ICacheService
@@ -13,6 +13,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
         private readonly IBlogClient _blogClient;
         private readonly ILogger<ICacheService> _logger;
 
+        public event EventHandler? AuthorizationExpired;
+        
         public CacheService(IBlogClient blogClient, ILogger<CacheService> logger)
         {
             _blogClient = blogClient;
@@ -71,8 +73,14 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
                     result = apiResult.Value.Take(count).ToList();
 
                 if (apiResult.Error != null)
+                {
                     _logger.LogError("Error fetching blogs:\n {ErrorCode}:{ErrorMessage}", (int)apiResult.Error.StatusCode.GetValueOrDefault(), apiResult.Error.Message);
 
+                    if (apiResult.Error.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        this.AuthorizationExpired?.Invoke(this, EventArgs.Empty);
+                    }
+                }
                 Barrel.Current.Empty(key);
                 Barrel.Current.Add(key, result, TimeSpan.FromDays(cacheValidity));
             }

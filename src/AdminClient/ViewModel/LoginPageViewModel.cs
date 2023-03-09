@@ -9,7 +9,7 @@ using MSiccDev.ServerlessBlog.DtoModel;
 using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
-    public class LoginPageViewModel : BaseViewModel
+    public class LoginPageViewModel : BaseViewModel, IQueryAttributable
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<LoginPageViewModel> _logger;
@@ -28,6 +28,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 
         private AsyncRelayCommand? _authorizationCommand;
         private RelayCommand? _addAzureAdScopeCommand;
+        private string _returnRoute = nameof(BlogPage);
 
         public LoginPageViewModel(IHttpClientFactory httpClientFactory,
             ILogger<LoginPageViewModel> logger,
@@ -84,6 +85,13 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
             }
         }
 
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            string? returnRoute = null;
+            returnRoute = query[nameof(returnRoute)].ToString();
+            _returnRoute = returnRoute;
+        }
+        
         private async Task AuthorizeAsync()
         {
             await SecureStorage.SetAsync(Constants.AzureFunctionBaseUrlStorageName, this.AzureFunctionBaseUrl ?? throw new InvalidOperationException());
@@ -157,35 +165,47 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
                     {
                         AzureAdAccessTokenResponse? azureAdAccessToken = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(responseContent);
 
-                        if (azureAdAccessToken != null)
+                        if (Preferences.Default.Get(Constants.HasObtainedValidAccessTokenStorageName, false))
                         {
-                            await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
-                            Preferences.Default.Set(Constants.HasObtainedValidAccessTokenStorageName, true);
-
-                            _blogClient.Init(this.AzureFunctionBaseUrl);
-
-                            List<BlogOverview>? blogs = await _cacheService.GetBlogsAsync(30, true);
-
-                            if (blogs?.Any() ?? false)
+                            if (azureAdAccessToken != null)
                             {
-                                Blog? selectedBlog = null;
-                                string? selectedBlogPopupResult = await _actionSheetService.ShowActionSheetAsync("Select a blog:", "Cancel", blogs.Select(blog => blog.Name).ToArray());
+                                await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
 
-                                if (!string.IsNullOrWhiteSpace(selectedBlogPopupResult))
-                                    selectedBlog = blogs.SingleOrDefault(blog => blog.Name == selectedBlogPopupResult);
-
-                                if (selectedBlog != null)
-                                {
-                                    Preferences.Default.Set(Constants.CurrentSelectedBlogIdStorageName, selectedBlog.BlogId.ToString());
-                                    //start loading blog data already in VM, display skeleton in page
-                                    await _navigationService.NavigateToRouteAsync(nameof(BlogPage), false, ShellNavigationSearchDirection.Up);
-                                }
+                                await _navigationService.NavigateToRouteAsync(_returnRoute!, false, ShellNavigationSearchDirection.Up);
                             }
-                            else
+                        }
+                        else
+                        {
+                            if (azureAdAccessToken != null)
                             {
-                                _logger.LogError("No blogs found at {ApiBaseUrl}", this.AzureFunctionBaseUrl);
+                                await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
+                                Preferences.Default.Set(Constants.HasObtainedValidAccessTokenStorageName, true);
 
-                                //TODO: ASK TO ADD NEW BLOG?
+                                _blogClient.Init(this.AzureFunctionBaseUrl);
+
+                                List<BlogOverview>? blogs = await _cacheService.GetBlogsAsync(30, true);
+
+                                if (blogs?.Any() ?? false)
+                                {
+                                    Blog? selectedBlog = null;
+                                    string? selectedBlogPopupResult = await _actionSheetService.ShowActionSheetAsync("Select a blog:", "Cancel", blogs.Select(blog => blog.Name).ToArray());
+
+                                    if (!string.IsNullOrWhiteSpace(selectedBlogPopupResult))
+                                        selectedBlog = blogs.SingleOrDefault(blog => blog.Name == selectedBlogPopupResult);
+
+                                    if (selectedBlog != null)
+                                    {
+                                        Preferences.Default.Set(Constants.CurrentSelectedBlogIdStorageName, selectedBlog.BlogId.ToString());
+                                        //start loading blog data already in VM, display skeleton in page
+                                        await _navigationService.NavigateToRouteAsync(_returnRoute, false, ShellNavigationSearchDirection.Up);
+                                    }
+                                }
+                                else
+                                {
+                                    _logger.LogError("No blogs found at {ApiBaseUrl}", this.AzureFunctionBaseUrl);
+
+                                    //TODO: ASK TO ADD NEW BLOG?
+                                }
                             }
                         }
                     }
@@ -274,12 +294,12 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
         public ObservableCollection<string> AzureAdScopes { get; set; } = new ObservableCollection<string>();
 
 
-        public AsyncRelayCommand AuthorizationCommand =>
-            _authorizationCommand ??= new AsyncRelayCommand(AuthorizeAsync, CanExecuteLoginAsync);
+        public AsyncRelayCommand AuthorizationCommand => _authorizationCommand ??= new AsyncRelayCommand(AuthorizeAsync, CanExecuteLoginAsync);
 
 
-        public RelayCommand AddAzureAdScopeCommand =>
-            _addAzureAdScopeCommand ??= new RelayCommand(AddAzureAdScope, CanExecuteAddAzureAdScope);
+        public RelayCommand AddAzureAdScopeCommand => _addAzureAdScopeCommand ??= new RelayCommand(AddAzureAdScope, CanExecuteAddAzureAdScope);
+
+
 
     }
 }

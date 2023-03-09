@@ -22,6 +22,18 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 
 			await Shell.Current.GoToAsync(route);
 		}
+
+		public async Task GoBackAsync(string? route = null)
+		{
+			string navigationRoute = "..";
+
+			if (!string.IsNullOrWhiteSpace(route))
+				navigationRoute += $"/{route}";
+
+			await Shell.Current.GoToAsync(navigationRoute);
+		}
+		
+		
 	}
 }
 

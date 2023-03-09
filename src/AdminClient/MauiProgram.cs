@@ -40,6 +40,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient
 
         private static void RegisterViewModels(IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<AppShellViewModel>();
             serviceCollection.AddSingleton<LoginPageViewModel>();
             serviceCollection.AddSingleton<BlogPageViewModel>();
         }

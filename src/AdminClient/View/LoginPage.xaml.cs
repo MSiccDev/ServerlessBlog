@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui.Behaviors;
+using MSiccDev.ServerlessBlog.AdminClient.Common;
 using MSiccDev.ServerlessBlog.AdminClient.ViewModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.View
 {
@@ -9,6 +10,12 @@ namespace MSiccDev.ServerlessBlog.AdminClient.View
 			InitializeComponent();
 
 			this.BindingContext = loginPageViewModel;
+
+
+			Shell.SetPresentationMode(this,
+			Preferences.Default.Get(Constants.HasObtainedValidAccessTokenStorageName, false)
+				? PresentationMode.Animated
+				: PresentationMode.ModalAnimated);
 		}
 
 		protected override void OnBindingContextChanged()
