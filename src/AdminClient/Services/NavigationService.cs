@@ -1,17 +1,13 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using MSiccDev.ServerlessBlog.AdminClient.Common;
-
 namespace MSiccDev.ServerlessBlog.AdminClient.Services
 {
 	public class NavigationService : INavigationService
 	{
 		private readonly ILogger<INavigationService> _logger;
 
-		public NavigationService(ILogger<INavigationService> logger)
-		{
+		public NavigationService(ILogger<NavigationService> logger) =>
 			_logger = logger;
-		}
 
 		public async Task NavigateToRouteAsync(string route, bool keepNavigationStack = false, ShellNavigationSearchDirection searchDirection = ShellNavigationSearchDirection.Down)
 		{
@@ -26,6 +22,18 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 
 			await Shell.Current.GoToAsync(route);
 		}
+
+		public async Task GoBackAsync(string? route = null)
+		{
+			string navigationRoute = "..";
+
+			if (!string.IsNullOrWhiteSpace(route))
+				navigationRoute += $"/{route}";
+
+			await Shell.Current.GoToAsync(navigationRoute);
+		}
+		
+		
 	}
 }
 

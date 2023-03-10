@@ -14,6 +14,6 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Common
         public const string AzureAdScopesStorageName = "AzureAdScopes";
 
         public const string HasObtainedValidAccessTokenStorageName = "HasObtainValidAccessToken";
-
+        public const string CurrentSelectedBlogIdStorageName = "CurrentSelectedBlogId";
     }
 }

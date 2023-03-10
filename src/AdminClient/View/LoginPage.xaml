@@ -21,8 +21,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-
-
+            
             <Image Grid.Row="1"
                    Source="serverless_blog_logo_temp.png"
                    HorizontalOptions="Center"

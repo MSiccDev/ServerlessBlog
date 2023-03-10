@@ -10,6 +10,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new Author
             {
+                BlogId = entity.BlogId,
                 ResourceId = entity.AuthorId,
                 DisplayName = entity.DisplayName,
                 UserName = entity.UserName,
@@ -36,6 +37,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new Medium
             {
+                BlogId = entity.BlogId,
                 ResourceId = entity.MediumId,
                 MediumType = entity.MediumType.ToDto(),
                 MediumUrl = entity.MediumUrl,
@@ -59,6 +61,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
         {
             return new Tag
             {
+                BlogId = entity.BlogId,
                 ResourceId = entity.TagId,
                 Name = entity.Name,
                 Slug = entity.Slug

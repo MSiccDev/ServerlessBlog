@@ -17,7 +17,7 @@
         <ApplicationIdGuid>75BE5285-6B4E-4DB1-B3D6-3BA5CE31C2C5</ApplicationIdGuid>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0.23031</ApplicationDisplayVersion>
+        <ApplicationDisplayVersion>1.0.23081</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>
 
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
@@ -27,6 +27,7 @@
         <Company>MSiccDev Software Development</Company>
         <Product>MSiccDev.ServerlessBlog.AdminClient</Product>
         <NeutralLanguage>en</NeutralLanguage>
+        <Version>1.0.23081</Version>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
@@ -64,6 +65,10 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.6" />
         <PackageReference Include="MonkeyCache.SQLite" Version="2.0.1" />
+        <PackageReference Include="SQLitePCLRaw.core" Version="2.1.4" />
+        <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.4" />
+        <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="2.1.4" />
+        <PackageReference Include="SQLitePCLRaw.provider.sqlite3" Version="2.1.4" />
     </ItemGroup>
 
     <ItemGroup>

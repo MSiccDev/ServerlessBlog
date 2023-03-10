@@ -1,7 +1,6 @@
-﻿using System;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Maui.Behaviors;
-
 namespace MSiccDev.ServerlessBlog.AdminClient.Controls
 {
 	public class ImageEx : Image
@@ -17,7 +16,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Controls
 
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>")]
+		[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "<Pending>")]
 		private static void OnTintColorPropertyChanged(BindableObject bindable, object oldValue, object newValue)
 		{
 			if (bindable is ImageEx imageEx)
@@ -31,13 +30,13 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Controls
 
 		private static void OnPlaceholderImageSourcePropertyChanged(BindableObject bindable, object oldValue, object newValue)
 		{
-			if (bindable is ImageEx imageEx)
-			{
-				if (newValue != null && imageEx.Source == null)
-				{
-					imageEx.Source = (ImageSource)newValue;
-				}
-			}
+			// if (bindable is ImageEx imageEx)
+			// {
+			// 	if (newValue != null && imageEx.Source == null)
+			// 	{
+			// 		imageEx.Source = (ImageSource)newValue;
+			// 	}
+			// }
 		}
 
 		public Color TintColor
@@ -58,6 +57,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Controls
 
 			if (propertyName == nameof(this.Source))
 			{
+				Console.WriteLine($"Source is: {this.Source}");
+				
 				if (this.Source == default(ImageSource))
 				{
 					this.Source = PlaceholderImageSource;

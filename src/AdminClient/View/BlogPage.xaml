@@ -34,24 +34,21 @@
 
             <!-- ReSharper disable Xaml.InvalidType -->
             <controls:ImageEx Grid.Row="0" Grid.ColumnSpan="4"
-                              Source="{Binding BlogLogoUrl}" HeightRequest="300"
+                              Source="{Binding BlogLogoUrl, UpdateSourceEventName=PropertyChanged}" HeightRequest="300"
                               PlaceholderImageSource="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=photo.fill}}" />
-            <ImageButton Grid.Row="1" Grid.Column="1"
+            <ImageButton Grid.Row="1" Grid.Column="1" Command="{Binding UploadBlogImageCommand}"
                          Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=plus.square.fill}}" />
-            <ImageButton Grid.Row="1" Grid.Column="2"
+            <ImageButton Grid.Row="1" Grid.Column="2" Command="{Binding DeleteBlogImageCommand}"
                          Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=trash.fill}}" />
             <!-- ReSharper restore Xaml.InvalidType -->
         </Grid>
 
-
-        <controls:FramedContentControlWithText Grid.Row="1" Margin="12" Text="Logo Url">
-            <controls:EntryEx Placeholder="Url to your logo" Text="{Binding BlogLogoUrl}" Margin="12" />
-        </controls:FramedContentControlWithText>
+        
         <controls:FramedContentControlWithText Grid.Row="2" Margin="12" Text="Name">
-            <controls:EntryEx Placeholder="Your blog's name" Text="{Binding BlogName}" Margin="12" />
+            <controls:EntryEx Placeholder="Your blog's name" Text="{Binding BlogName, Mode=TwoWay}" Margin="12" />
         </controls:FramedContentControlWithText>
         <controls:FramedContentControlWithText Grid.Row="3" Margin="12" Text="Slogan">
-            <controls:EntryEx Placeholder="Your blog's slogan" Text="{Binding Slogan}" Margin="12" />
+            <controls:EntryEx Placeholder="Your blog's slogan" Text="{Binding Slogan, Mode=TwoWay}" Margin="12" />
         </controls:FramedContentControlWithText>
         <controls:FramedContentControlWithText Grid.Row="4" Margin="12" Text="Stats">
             <Grid Margin="0,12">
@@ -82,7 +79,7 @@
         </controls:FramedContentControlWithText>
 
 
-        <Button Text="Refresh" Grid.Row="8" Margin="8,4" />
-        <Button Text="Save" Grid.Row="9" Margin="8,4,8,12" />
+        <Button Text="Refresh" Grid.Row="8" Margin="8,4" Command="{Binding RefreshCommand}" />
+        <Button Text="Save" Grid.Row="9" Margin="8,4,8,12" Command="{Binding SaveCommand}" />
     </Grid>
 </ContentPage>

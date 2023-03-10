@@ -35,19 +35,22 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         private static void RegisterViews(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<LoginPage>();
+            serviceCollection.AddSingleton<BlogPage>();
         }
 
         private static void RegisterViewModels(IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<AppShellViewModel>();
             serviceCollection.AddSingleton<LoginPageViewModel>();
+            serviceCollection.AddSingleton<BlogPageViewModel>();
         }
 
         private static void RegisterServices(IServiceCollection serviceCollection)
         {
             serviceCollection.AddHttpClient();
             serviceCollection.AddSingleton<INavigationService, NavigationService>();
+            serviceCollection.AddSingleton<IActionSheetService, ActionSheetService>();
             serviceCollection.AddSingleton<IBlogClient, BlogClient>();
-
             serviceCollection.AddSingleton<ICacheService, CacheService>();
         }
     }

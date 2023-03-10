@@ -15,5 +15,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Common
             return sb.ToString().Trim();
         }
 
+        public static List<string> ConvertToList(this string input, string separator = " ") =>
+            input.Split(separator).ToList();
+
     }
 }
