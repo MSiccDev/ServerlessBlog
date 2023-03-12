@@ -36,7 +36,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                 if (mediumType != null)
                 {
-                    EntityModel.MediumType newMediumType = mediumType.CreateFrom();
+                    EntityModel.MediumType newMediumType = mediumType.CreateFrom(Guid.Parse(blogId));
 
                     EntityEntry<EntityModel.MediumType> createdMediumType =
                         BlogContext.MediaTypes.Add(newMediumType);

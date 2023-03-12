@@ -76,7 +76,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
                 Description = dto.Description,
             };
 
-        public static MediumType CreateFrom(this DtoModel.MediumType dto) =>
+        public static MediumType CreateFrom(this DtoModel.MediumType dto, Guid blogId) =>
             new MediumType
             {
                 MediumTypeId = dto.ResourceId.GetValueOrDefault(),
