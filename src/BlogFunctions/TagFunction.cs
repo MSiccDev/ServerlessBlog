@@ -14,7 +14,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 {
     public class TagFunction : BlogFunctionBase
     {
-        private const string Route = "blog/{blogId}/tags";
+        private const string Route = "blog/{blogId}/tag";
 
         public TagFunction(BlogContext blogContext, ILoggerFactory loggerFactory) : base(blogContext) =>
             Logger = loggerFactory.CreateLogger<TagFunction>();
