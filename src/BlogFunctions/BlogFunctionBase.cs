@@ -25,7 +25,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             JsonSerializerSettings = NewtonsoftJsonObjectSerializer.CreateJsonSerializerSettings();
 
             JsonSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-
+            
             JsonSerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             JsonSerializerSettings.Formatting = Formatting.Indented;
             JsonSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;

@@ -16,7 +16,7 @@ namespace MSiccDev.ServerlessBlog.DtoModel
         [JsonProperty(Required = Required.Always)]
         public string UserName { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(Required = Required.AllowNull, NullValueHandling = NullValueHandling.Include)]
         public Medium UserImage { get; set; }
     }
 }
