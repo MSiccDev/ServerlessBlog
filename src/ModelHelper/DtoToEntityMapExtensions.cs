@@ -34,7 +34,7 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
                 {
                     MediumId = medium.ResourceId.GetValueOrDefault(),
                     PostId = newPost.ResourceId.GetValueOrDefault(),
-                    AsFeatuerdOnPost = medium.IsPostImage ?? false
+                    AsFeatuerdOnPost = medium.IsPostImage
                 });
             }
 
