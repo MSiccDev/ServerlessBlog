@@ -22,7 +22,7 @@ namespace MSiccDev.ServerlessBlog.DtoModel
         [JsonProperty(Required = Required.Always)]
         public MediumType MediumType { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
-        public bool? IsPostImage { get; set; } = null;
+        [JsonProperty(Required = Required.Default)]
+        public bool IsPostImage { get; set; }
     }
 }
