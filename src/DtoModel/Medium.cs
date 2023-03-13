@@ -13,10 +13,10 @@ namespace MSiccDev.ServerlessBlog.DtoModel
 		[JsonProperty(Required = Required.Always)]
         public Uri MediumUrl { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(Required = Required.AllowNull, NullValueHandling = NullValueHandling.Include)]
         public string AlternativeText { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(Required = Required.AllowNull, NullValueHandling = NullValueHandling.Include)]
         public string Description { get; set; }
 
         [JsonProperty(Required = Required.Always)]

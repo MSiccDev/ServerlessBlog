@@ -4,10 +4,7 @@ namespace MSiccDev.ServerlessBlog.DtoModel
 {
     public class MediumType : DtoModelBase
     {
-
-	    // [JsonProperty(Required = Required.Default)]
-	    // public override Guid? BlogId { get => base.BlogId; set => base.BlogId = value; }
-
+	    
 		[JsonProperty(Required = Required.Always)]
 		public override Guid? ResourceId { get => base.ResourceId; set => base.ResourceId = value; }
 
