@@ -94,6 +94,8 @@ namespace MSiccDev.ServerlessBlog.ModelHelper
                                                 mapping.MediumId == medium.ResourceId &&
                                                 mapping.PostId == result.ResourceId
                                             )?.AsFeatuerdOnPost ?? false;
+                if (medium.IsPostImage)
+                    result.PostImage = medium;
             }
 
             return result;
