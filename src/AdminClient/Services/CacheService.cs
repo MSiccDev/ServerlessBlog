@@ -33,17 +33,17 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
         public async Task<List<BlogOverview>?> GetBlogsAsync(int cacheValidity = 30, bool forceRefresh = false)
             => await GetCachedBlogEntitiesAsync<BlogOverview>(null, null, cacheValidity, forceRefresh);
 
-        public async Task<List<Author>?> GetAuthorsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false)
-            => await GetCachedBlogEntitiesAsync<Author>(blogId, typeof(Author).GetResourceName(), cacheValidity, forceRefresh);
+        public async Task<List<Author>?> GetAuthorsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false, int count = 10, int skip = 0)
+            => await GetCachedBlogEntitiesAsync<Author>(blogId, typeof(Author).GetResourceName(), cacheValidity, forceRefresh, count, skip);
 
-        public async Task<List<Tag>?> GetTagsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false)
-            => await GetCachedBlogEntitiesAsync<Tag>(blogId, typeof(Tag).GetResourceName(), cacheValidity, forceRefresh, 100);
+        public async Task<List<Tag>?> GetTagsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false, int count = 100, int skip = 0)
+            => await GetCachedBlogEntitiesAsync<Tag>(blogId, typeof(Tag).GetResourceName(), cacheValidity, forceRefresh, count, skip);
 
-        public async Task<List<Medium>?> GetMediaAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false)
-            => await GetCachedBlogEntitiesAsync<Medium>(blogId, typeof(Medium).GetResourceName(), cacheValidity, forceRefresh, 100);
+        public async Task<List<Medium>?> GetMediaAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false, int count = 100, int skip = 0)
+            => await GetCachedBlogEntitiesAsync<Medium>(blogId, typeof(Medium).GetResourceName(), cacheValidity, forceRefresh, count, skip);
 
-        public async Task<List<Post>?> GetPostsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false)
-            => await GetCachedBlogEntitiesAsync<Post>(blogId, typeof(Post).GetResourceName(), cacheValidity, forceRefresh, 25);
+        public async Task<List<Post>?> GetPostsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false, int count = 25, int skip = 0)
+            => await GetCachedBlogEntitiesAsync<Post>(blogId, typeof(Post).GetResourceName(), cacheValidity, forceRefresh, count, skip);
 
 
         private async Task<List<TEntity>?> GetCachedBlogEntitiesAsync<TEntity>(Guid? blogId = null, string? resourceName = null, int cacheValidity = 30, bool forceRefresh = false, int count = 10, int skip = 0) where TEntity : DtoModelBase
@@ -81,6 +81,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
                         this.AuthorizationExpired?.Invoke(this, EventArgs.Empty);
                     }
                 }
+                
                 Barrel.Current.Empty(key);
                 Barrel.Current.Add(key, result, TimeSpan.FromDays(cacheValidity));
             }
@@ -91,8 +92,21 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
         public async Task<BlogOverview?> GetCurrentBlogAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false)
         {
             List<BlogOverview>? blogs = await GetBlogsAsync(cacheValidity, forceRefresh);
-            return blogs?.SingleOrDefault(blog => blog.BlogId == blogId);
+            BlogOverview? currentBlog = blogs?.SingleOrDefault(blog => blog.BlogId == blogId);
+
+            if (forceRefresh && currentBlog != null)
+                await RefreshAsync(currentBlog.BlogId!.Value);
+
+            return currentBlog;
         }
-        
+
+        public async Task RefreshAsync(Guid blogId)
+        {
+            await GetAuthorsAsync(blogId, forceRefresh: true).ConfigureAwait(false);
+            await GetTagsAsync(blogId, forceRefresh: true).ConfigureAwait(false);
+            await GetMediaAsync(blogId, forceRefresh: true).ConfigureAwait(false);
+            await GetPostsAsync(blogId, forceRefresh: true).ConfigureAwait(false);
+        }
+
     }
 }

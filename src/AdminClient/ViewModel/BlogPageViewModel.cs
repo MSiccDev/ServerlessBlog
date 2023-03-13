@@ -72,6 +72,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 			if (_savedSelectedBlog != null)
 			{
 				_savedSelectedBlog = await _cacheService.GetCurrentBlogAsync(_savedSelectedBlog.BlogId.GetValueOrDefault(), forceRefresh: true);
+				
 				RaisePropertyChanges();
 			}
 		}

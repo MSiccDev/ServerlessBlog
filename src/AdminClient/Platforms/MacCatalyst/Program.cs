@@ -9,7 +9,7 @@ public class Program
 		//TODO:
 		//HACK Rider issue
 		//https://youtrack.jetbrains.com/issue/RIDER-79838
-		Thread.Sleep(3000);
+		Thread.Sleep(5000);
 		//HACK Rider issue
 		
 		
