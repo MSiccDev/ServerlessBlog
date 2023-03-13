@@ -89,6 +89,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
         {
             string? returnRoute = null;
             returnRoute = query[nameof(returnRoute)].ToString();
+            
             _returnRoute = returnRoute;
         }
         
@@ -188,15 +189,25 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
                                 if (blogs?.Any() ?? false)
                                 {
                                     Blog? selectedBlog = null;
-                                    string? selectedBlogPopupResult = await _actionSheetService.ShowActionSheetAsync("Select a blog:", "Cancel", blogs.Select(blog => blog.Name).ToArray());
 
-                                    if (!string.IsNullOrWhiteSpace(selectedBlogPopupResult))
-                                        selectedBlog = blogs.SingleOrDefault(blog => blog.Name == selectedBlogPopupResult);
+                                    if (blogs.Count == 1)
+                                    {
+                                        selectedBlog = blogs.First();
+                                    }
+                                    else
+                                    {
+                                        string? selectedBlogPopupResult = await _actionSheetService.ShowActionSheetAsync("Select a blog:", "Cancel", blogs.Select(blog => blog.Name).ToArray());
+
+                                        if (!string.IsNullOrWhiteSpace(selectedBlogPopupResult))
+                                            selectedBlog = blogs.SingleOrDefault(blog => blog.Name == selectedBlogPopupResult);
+                                    }
 
                                     if (selectedBlog != null)
                                     {
                                         Preferences.Default.Set(Constants.CurrentSelectedBlogIdStorageName, selectedBlog.BlogId.ToString());
-                                        //start loading blog data already in VM, display skeleton in page
+
+                                        await _cacheService.RefreshAsync(selectedBlog.BlogId!.Value);
+                                        
                                         await _navigationService.NavigateToRouteAsync(_returnRoute, false, ShellNavigationSearchDirection.Up);
                                     }
                                 }
