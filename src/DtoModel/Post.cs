@@ -26,7 +26,7 @@ namespace MSiccDev.ServerlessBlog.DtoModel
         [JsonProperty(Required = Required.Always)]
         public DateTimeOffset LastModified { get; set; }
 
-        [JsonProperty(Required = Required.AllowNull)]
+        [JsonProperty(Required = Required.AllowNull, NullValueHandling = NullValueHandling.Include)]
         public Medium PostImage { get; set; }
 
         [JsonProperty(Required = Required.Always)]
