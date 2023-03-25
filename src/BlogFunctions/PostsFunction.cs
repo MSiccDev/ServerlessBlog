@@ -30,6 +30,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
                 Post? post = JsonConvert.DeserializeObject<Post>(requestBody);
@@ -172,6 +175,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -226,6 +231,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         [Function($"{nameof(PostsFunction)}_{nameof(Delete)}")]
         public override async Task<HttpResponseData> Delete([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = Route + "/{id}")] HttpRequestData req, string blogId, string id)
         {
+            if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
             try
             {
                 EntityModel.Post? existingPost = await BlogContext.Posts.
