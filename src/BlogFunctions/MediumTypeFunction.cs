@@ -30,6 +30,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
                 MediumType? mediumType = JsonConvert.DeserializeObject<MediumType>(requestBody);
@@ -73,6 +76,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             try
             {
                 Logger.LogInformation("Trying to get MediaTypes...");
+                
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
 
                 (int count, int skip) = req.GetPagingProperties();
 
@@ -105,6 +111,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 if (!string.IsNullOrWhiteSpace(id))
                 {
                     EntityModel.MediumType? existingMediumType =
@@ -141,6 +150,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
                 MediumType? mediumTypeToUpdate = JsonConvert.DeserializeObject<MediumType>(requestBody);
@@ -188,6 +200,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 EntityModel.MediumType? existingMediumType =
                     await BlogContext.MediaTypes.
                                       SingleOrDefaultAsync(mediumType => mediumType.MediumTypeId == Guid.Parse(id));

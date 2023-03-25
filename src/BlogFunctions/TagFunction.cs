@@ -30,6 +30,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -153,6 +155,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
                 Tag? tagToUpdate = JsonConvert.DeserializeObject<Tag>(requestBody);
@@ -199,6 +204,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 EntityModel.Tag? existingTag =
                     await BlogContext.Tags.
                                       SingleOrDefaultAsync(tag => tag.BlogId == Guid.Parse(blogId) &&

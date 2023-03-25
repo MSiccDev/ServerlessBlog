@@ -186,6 +186,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 		{
 			try
 			{
+				if (string.IsNullOrWhiteSpace(id) || Guid.Parse(id) == default)
+					return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'id' (GUID) is not specified or cannot be parsed.");
+
 				string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
 				Blog? updatedBlog = JsonConvert.DeserializeObject<Blog>(requestBody);
@@ -225,6 +228,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 		{
 			try
 			{
+				if (string.IsNullOrWhiteSpace(id) || Guid.Parse(id) == default)
+					return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'id' (GUID) is not specified or cannot be parsed.");
+
 				EntityModel.Blog? existingBlog = await _blogContext.Blogs.
 				                                                    Include(blog => blog.Authors).
 				                                                    ThenInclude(author => author.UserImage).
@@ -249,7 +255,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 				if (existingBlog == null)
 				{
-					_logger.LogWarning("Post with Id \'{Id}\' not found", id);
+					_logger.LogWarning("Blog with Id \'{Id}\' not found", id);
 					return req.CreateResponse(HttpStatusCode.NotFound);
 				}
 

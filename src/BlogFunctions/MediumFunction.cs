@@ -30,6 +30,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -112,6 +114,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 {
                     Logger.LogInformation("Trying to get medium with Id {Id}...", id);
 
+                    if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                        return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                     EntityModel.Medium? existingMedium =
                         await BlogContext.Media.
                                           Include(medium => medium.MediumType).
@@ -150,6 +155,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
                 Medium? mediumToUpdate = JsonConvert.DeserializeObject<Medium>(requestBody);
@@ -196,6 +204,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 EntityModel.Medium? existingMedium =
                     await BlogContext.Media.
                                       SingleOrDefaultAsync(medium => medium.BlogId == Guid.Parse(blogId) &&
