@@ -23,8 +23,12 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 
         }
 
-        private async Task RefreshAuthorizationAsync() =>
-            await _navigationService.NavigateToRouteAsync($"{nameof(LoginPage)}?returnRoute={Shell.Current.CurrentPage.GetType().Name}");
+        private async Task RefreshAuthorizationAsync()
+        {
+            //avoiding double navigation in Shell
+            if (Shell.Current.CurrentPage is not LoginPage _)
+                await _navigationService.NavigateToRouteAsync($"{nameof(LoginPage)}?returnRoute={Shell.Current.CurrentPage.GetType().Name}");
+        }
 
 
         public string VersionString => $"Version {AppInfo.Current.VersionString}";

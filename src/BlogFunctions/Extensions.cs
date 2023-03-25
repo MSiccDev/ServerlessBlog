@@ -51,7 +51,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             HttpResponseData response = req.CreateResponse(statusCode);
 
             if (string.IsNullOrWhiteSpace(message))
-                message = nameof(HttpStatusCode.BadRequest);
+                message = statusCode.ToString();
 
             await response.WriteStringAsync(message);
 
@@ -80,7 +80,6 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             return response;
         }
         
-
     }
 }
 

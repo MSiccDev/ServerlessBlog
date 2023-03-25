@@ -30,6 +30,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
                 Author? author = JsonConvert.DeserializeObject<Author>(requestBody);
@@ -80,6 +83,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 (int count, int skip) = req.GetPagingProperties();
 
                 List<EntityModel.Author> entityResultSet = await BlogContext.Authors.
+                                                                             Include(author => author.UserImage).
+                                                                             ThenInclude(media => media.MediumType).
                                                                              Where(author => author.BlogId == Guid.Parse(blogId)).
                                                                              Skip(skip).
                                                                              Take(count).
@@ -156,6 +161,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
                 Author? authorToUpdate = JsonConvert.DeserializeObject<Author>(requestBody);
@@ -206,6 +214,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(blogId) || Guid.Parse(blogId) == default)
+                    return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Required parameter 'blogId' (GUID) is not specified or cannot be parsed.");
+
                 EntityModel.Author? existingAuthor = await BlogContext.Authors.
                                                                        Include(author => author.UserImage).
                                                                        SingleOrDefaultAsync(author => author.BlogId == Guid.Parse(blogId) &&
