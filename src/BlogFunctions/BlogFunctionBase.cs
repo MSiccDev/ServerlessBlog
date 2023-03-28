@@ -10,10 +10,12 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
     public abstract class BlogFunctionBase
     {
         internal readonly BlogContext BlogContext;
-        internal ILogger? Logger;
+        internal ILogger Logger;
         internal JsonSerializerSettings? JsonSerializerSettings;
 
+#pragma warning disable CS8618 // will be initialized in derived class!
         protected BlogFunctionBase(BlogContext blogContext)
+#pragma warning restore CS8618
         {
             BlogContext = blogContext ?? throw new ArgumentNullException(nameof(blogContext));
 

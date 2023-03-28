@@ -120,7 +120,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
 		[OpenApiOperation("GET", "Blog", Description = "Gets a blog by its id from the database.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid), Required = true, Description = "Id of the desired blog", Visibility = OpenApiVisibilityType.Important)]
+		[OpenApiParameter("id", Type = typeof(Guid), Required = true, Description = "Id of the desired blog", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Blog), Description = "Gets a single blog filtered by the specified Id. Warning: This can result in a very big json!")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No blog with the specified id was found")]
@@ -176,7 +176,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 		[OpenApiOperation("UPDATE", "Blog", Description = "Updates a blog in the database.", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiRequestBody("application/json", typeof(Blog), Required = true, Description = "Blog object to be updated")]
-		[OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid?), Required = true, Description = "Id of the blog to update", Visibility = OpenApiVisibilityType.Important)]
+		[OpenApiParameter("id", Type = typeof(Guid?), Required = true, Description = "Id of the blog to update", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Accepted, Description = "Accepted if the update operation succeeded")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No blog with the specified id was found")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
@@ -218,7 +218,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 		}
 
 		[OpenApiOperation("DELETE", "Blog", Description = "Delete a blog including all sub-entities from the database.", Visibility = OpenApiVisibilityType.Important)]
-		[OpenApiParameter("id", In = ParameterLocation.Path, Type = typeof(Guid?), Required = true, Description = "Id of the blog to delete", Visibility = OpenApiVisibilityType.Important)]
+		[OpenApiParameter("id", Type = typeof(Guid?), Required = true, Description = "Id of the blog to delete", Visibility = OpenApiVisibilityType.Important)]
 		[OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "OK response if the delete operation succeeded")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No blog with the specified id was found")]
 		[OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
