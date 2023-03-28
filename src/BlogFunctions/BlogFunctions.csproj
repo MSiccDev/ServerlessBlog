@@ -10,7 +10,7 @@
 		<SynchReleaseVersion>false</SynchReleaseVersion>
 		<RootNamespace>MSiccDev.ServerlessBlog.BlogFunctions</RootNamespace>
 		<UserSecretsId>df07137f-a2cd-4dbe-8c26-86731ca99a28</UserSecretsId>
-		<LangVersion>11</LangVersion>
+		<LangVersion>10</LangVersion>
 		<AssemblyVersion>1.0.23131.0</AssemblyVersion>
 		<FileVersion>1.0.23131.0</FileVersion>
 		<NeutralLanguage>en</NeutralLanguage>
