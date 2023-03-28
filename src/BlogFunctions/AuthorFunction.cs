@@ -6,6 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using MSiccDev.ServerlessBlog.DtoModel;
 using MSiccDev.ServerlessBlog.EFCore;
 using MSiccDev.ServerlessBlog.ModelHelper;
@@ -65,8 +66,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         [OpenApiOperation("GET", "Author", Description = "Gets a list of authors from the database.", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("blogId", Type = typeof(Guid?), Required = true, Description = "Id of the blog on which the authors exist", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiParameter("skip", Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
-        [OpenApiParameter("count", Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("skip", In = ParameterLocation.Query, Type = typeof(int), Required = true, Description = "skips the specified amount of entries from the results", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("count", In = ParameterLocation.Query, Type = typeof(int), Required = true, Description = "how many results are being returned per request", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Author), Description = "Returns a list of authors from the Database")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
