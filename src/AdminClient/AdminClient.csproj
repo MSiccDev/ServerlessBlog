@@ -75,6 +75,7 @@
       <Folder Include="Model" />
       <Folder Include="Services\" />
       <Folder Include="Controls\" />
+      <Folder Include="Converters\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -82,6 +83,7 @@
       <None Remove="AsyncAwaitBestPractices" />
       <None Remove="Controls\" />
       <None Remove="MonkeyCache.SQLite" />
+      <None Remove="Converters\" />
     </ItemGroup>
 
     <ItemGroup>

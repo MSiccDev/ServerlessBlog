@@ -9,10 +9,12 @@ using MSiccDev.ServerlessBlog.DtoModel;
 using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
-    public class LoginPageViewModel : BaseViewModel, IQueryAttributable
+    // ReSharper disable ClassNeverInstantiated.Global
+    public class LoginPagePageViewModel : BasePageViewModel, IQueryAttributable
+        // ReSharper restore ClassNeverInstantiated.Global
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<LoginPageViewModel> _logger;
+        private readonly ILogger<LoginPagePageViewModel> _logger;
 		private readonly IBlogClient _blogClient;
         private readonly ICacheService _cacheService;
         private readonly INavigationService _navigationService;
@@ -28,10 +30,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 
         private AsyncRelayCommand? _authorizationCommand;
         private RelayCommand? _addAzureAdScopeCommand;
-        private string _returnRoute = nameof(BlogPage);
+        private string? _returnRoute = nameof(BlogPage);
 
-        public LoginPageViewModel(IHttpClientFactory httpClientFactory,
-            ILogger<LoginPageViewModel> logger,
+        public LoginPagePageViewModel(IHttpClientFactory httpClientFactory,
+            ILogger<LoginPagePageViewModel> logger,
             IBlogClient blogClient,
             ICacheService cacheService,
             IActionSheetService actionSheetService,
@@ -87,156 +89,197 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            string? returnRoute = null;
-            returnRoute = query[nameof(returnRoute)].ToString();
-            
-            _returnRoute = returnRoute;
+            _returnRoute = query["returnRoute"].ToString();
         }
         
         private async Task AuthorizeAsync()
         {
+            await SaveUserLoginDataAsync();
+
+            if (Preferences.Get(Constants.DebugLocallyStorageName, false))
+            {
+                this.AzureTenantId = Guid.Empty.ToString();
+                this.AzureAdClientId = Guid.Empty.ToString();
+                this.AzureAdCallbackUrl = null;
+
+                await LoadBlogsInitiallyAndSelectOneAsync();
+            }
+            else
+            {
+
+                string stateValue = GetLoginUrlWithStateValue(out string loginUrl);
+
+                try
+                {
+                    WebAuthenticatorResult authResult = await WebAuthenticator.Default.AuthenticateAsync(
+                    new WebAuthenticatorOptions
+                    {
+                        Url = new Uri(loginUrl),
+                        CallbackUrl = new Uri(this.AzureAdCallbackUrl!),
+                        PrefersEphemeralWebBrowserSession = true
+                    });
+
+                    if (authResult.Properties.ContainsKey("code"))
+                    {
+                        HttpResponseMessage response = await TryGetAccessTokenResponseAsync(authResult, stateValue);
+
+                        response.EnsureSuccessStatusCode();
+
+                        string responseContent = await response.Content.ReadAsStringAsync();
+
+                        if (!string.IsNullOrWhiteSpace(responseContent))
+                        {
+                            AzureAdAccessTokenResponse? azureAdAccessToken = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(responseContent);
+
+                            if (Preferences.Default.Get(Constants.HasObtainedValidAccessTokenStorageName, false))
+                            {
+                                if (azureAdAccessToken != null)
+                                {
+                                    await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
+
+                                    await _navigationService.NavigateToRouteAsync(_returnRoute!, false, ShellNavigationSearchDirection.Up);
+                                }
+                            }
+                            else
+                            {
+                                if (azureAdAccessToken != null)
+                                {
+                                    await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
+                                    await LoadBlogsInitiallyAndSelectOneAsync();
+                                }
+                            }
+                        }
+                    }
+                    //TODO: Show error message
+                }
+                catch (Exception ex)
+                {
+                    if (ex is TaskCanceledException canceledException)
+                    {
+                        //TODO
+                    }
+
+                    _logger.LogError(ex, "Error during authentication process:");
+
+                }
+            }
+        }
+
+
+
+
+
+        private async Task SaveUserLoginDataAsync()
+        {
+
             await SecureStorage.SetAsync(Constants.AzureFunctionBaseUrlStorageName, this.AzureFunctionBaseUrl ?? throw new InvalidOperationException());
             await SecureStorage.SetAsync(Constants.AzureAdClientIdStorageName, this.AzureAdClientId ?? throw new InvalidOperationException());
             await SecureStorage.SetAsync(Constants.AzureAdCallbackUrlStorageName, this.AzureAdCallbackUrl ?? throw new InvalidOperationException());
             await SecureStorage.SetAsync(Constants.AzureAdTenantIdStorageName, this.AzureTenantId ?? throw new InvalidOperationException());
             await SecureStorage.SetAsync(Constants.AzureAdScopesStorageName, this.AzureAdScopes.ToArray().ToSeparatedValuesString(" "));
+        }
 
+        private string GetLoginUrlWithStateValue(out string loginUrl)
+        {
             string stateValue = Guid.NewGuid().ToString();
 
-            string loginUrl =
-                $"https://login.microsoftonline.com/{this.AzureTenantId}/oauth2/v2.0/authorize".
-                    AddParameterToUri("client_id", this.AzureAdClientId).
-                    AddParameterToUri("response_type", "code").
-                    AddParameterToUri("redirect_uri", this.AzureAdCallbackUrl).
-                    AddParameterToUri("response_mode", "query").
-                    AddParameterToUri("scope", this.AzureAdScopes.ToArray().ToSeparatedValuesString(" ")).
-                    AddParameterToUri("state", stateValue);
+            loginUrl = $"https://login.microsoftonline.com/{this.AzureTenantId}/oauth2/v2.0/authorize".
+                       AddParameterToUri("client_id", this.AzureAdClientId!).
+                       AddParameterToUri("response_type", "code").
+                       AddParameterToUri("redirect_uri", this.AzureAdCallbackUrl!).
+                       AddParameterToUri("response_mode", "query").
+                       AddParameterToUri("scope", this.AzureAdScopes.ToArray().ToSeparatedValuesString(" ")).
+                       AddParameterToUri("state", stateValue);
 
+            return stateValue;
+        }
 
-            try
+        private async Task<HttpResponseMessage> TryGetAccessTokenResponseAsync(WebAuthenticatorResult authResult, string stateValue)
+        {
+
+            if (authResult.Properties.ContainsKey("state"))
+                if (authResult.Properties["state"] != stateValue)
+                    throw new NotSupportedException("state value must be the same between request and response");
+
+            Dictionary<string, string> tokenRequestBodyParameters = new Dictionary<string, string>
             {
-                WebAuthenticatorResult authResult = await WebAuthenticator.Default.AuthenticateAsync(
-                new WebAuthenticatorOptions
-                {
-                    Url = new Uri(loginUrl),
-                    CallbackUrl = new Uri(this.AzureAdCallbackUrl),
-                    PrefersEphemeralWebBrowserSession = true
-                });
+                { "grant_type", "authorization_code" },
+                { "client_id", this.AzureAdClientId! },
+                { "code", authResult.Properties["code"] },
+                { "redirect_uri", this.AzureAdCallbackUrl! }
+            };
 
-                if (authResult.Properties.ContainsKey("code"))
-                {
-                    if (authResult.Properties.ContainsKey("state"))
-                        if (authResult.Properties["state"] != stateValue)
-                            throw new NotSupportedException("state value must be the same between request and response");
+            if (tokenRequestBodyParameters == null)
+                throw new ArgumentNullException(nameof(tokenRequestBodyParameters));
 
-                    Dictionary<string, string> tokenRequestBodyParameters = new Dictionary<string, string>
-                    {
-                        { "grant_type", "authorization_code" },
-                        { "client_id", this.AzureAdClientId },
-                        { "code", authResult.Properties["code"] },
-                        { "redirect_uri", this.AzureAdCallbackUrl }
-                    };
-
-                    if (tokenRequestBodyParameters == null)
-                        throw new ArgumentNullException(nameof(tokenRequestBodyParameters));
-
-                    string? userImpersonationScope = this.AzureAdScopes.SingleOrDefault(value => value.Contains("user_impersonation"));
-                    if (!string.IsNullOrWhiteSpace(userImpersonationScope))
-                        tokenRequestBodyParameters.Add("scope", userImpersonationScope);
-                    else
-                        throw new NotSupportedException("user_impersonation scope is always needed");
+            string? userImpersonationScope = this.AzureAdScopes.SingleOrDefault(value => value.Contains("user_impersonation"));
+            if (!string.IsNullOrWhiteSpace(userImpersonationScope))
+                tokenRequestBodyParameters.Add("scope", userImpersonationScope);
+            else
+                throw new NotSupportedException("user_impersonation scope is always needed");
 
 
-                    using HttpClient loginClient = _httpClientFactory.CreateClient();
+            using HttpClient loginClient = _httpClientFactory.CreateClient();
 
 
-                    HttpRequestMessage request = new HttpRequestMessage
-                    {
-                        Method = HttpMethod.Post,
-                        RequestUri = new Uri($"https://login.microsoftonline.com/{this.AzureTenantId}/oauth2/v2.0/token"),
-                        Content = new FormUrlEncodedContent(tokenRequestBodyParameters)
-                    };
+            HttpRequestMessage request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"https://login.microsoftonline.com/{this.AzureTenantId}/oauth2/v2.0/token"),
+                Content = new FormUrlEncodedContent(tokenRequestBodyParameters)
+            };
 
-                    HttpResponseMessage response = await loginClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
-                    string responseContent = await response.Content.ReadAsStringAsync();
+            return await loginClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+        }
 
-                    response.EnsureSuccessStatusCode();
+        private async Task GetSelectedBlogAsync(List<BlogOverview> blogs)
+        {
 
-                    if (!string.IsNullOrWhiteSpace(responseContent))
-                    {
-                        AzureAdAccessTokenResponse? azureAdAccessToken = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(responseContent);
+            Blog? selectedBlog = null;
 
-                        if (Preferences.Default.Get(Constants.HasObtainedValidAccessTokenStorageName, false))
-                        {
-                            if (azureAdAccessToken != null)
-                            {
-                                await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
-
-                                await _navigationService.NavigateToRouteAsync(_returnRoute!, false, ShellNavigationSearchDirection.Up);
-                            }
-                        }
-                        else
-                        {
-                            if (azureAdAccessToken != null)
-                            {
-                                await SecureStorage.Default.SetAsync(Constants.AzureAdAccessTokenStorageName, responseContent);
-                                Preferences.Default.Set(Constants.HasObtainedValidAccessTokenStorageName, true);
-
-                                _blogClient.Init(this.AzureFunctionBaseUrl);
-
-                                List<BlogOverview>? blogs = await _cacheService.GetBlogsAsync(30, true);
-
-                                if (blogs?.Any() ?? false)
-                                {
-                                    Blog? selectedBlog = null;
-
-                                    if (blogs.Count == 1)
-                                    {
-                                        selectedBlog = blogs.First();
-                                    }
-                                    else
-                                    {
-                                        string? selectedBlogPopupResult = await _actionSheetService.ShowActionSheetAsync("Select a blog:", "Cancel", blogs.Select(blog => blog.Name).ToArray());
-
-                                        if (!string.IsNullOrWhiteSpace(selectedBlogPopupResult))
-                                            selectedBlog = blogs.SingleOrDefault(blog => blog.Name == selectedBlogPopupResult);
-                                    }
-
-                                    if (selectedBlog != null)
-                                    {
-                                        Preferences.Default.Set(Constants.CurrentSelectedBlogIdStorageName, selectedBlog.BlogId.ToString());
-
-                                        await _cacheService.RefreshAsync(selectedBlog.BlogId!.Value);
-                                        
-                                        await _navigationService.NavigateToRouteAsync(_returnRoute, false, ShellNavigationSearchDirection.Up);
-                                    }
-                                }
-                                else
-                                {
-                                    _logger.LogError("No blogs found at {ApiBaseUrl}", this.AzureFunctionBaseUrl);
-
-                                    //TODO: ASK TO ADD NEW BLOG?
-                                }
-                            }
-                        }
-                    }
-                }
-
-                //TODO: Show error message
+            if (blogs.Count == 1)
+            {
+                selectedBlog = blogs.First();
             }
-            catch (Exception ex)
+            else
             {
-                if (ex is TaskCanceledException canceledException)
-                {
-                    //TODO
-                }
+                string? selectedBlogPopupResult = await _actionSheetService.ShowActionSheetAsync("Select a blog:", "Cancel", blogs.Select(blog => blog.Name).ToArray());
 
-                _logger.LogError(ex, "Error during authentication process:");
+                if (!string.IsNullOrWhiteSpace(selectedBlogPopupResult))
+                    selectedBlog = blogs.SingleOrDefault(blog => blog.Name == selectedBlogPopupResult);
+            }
 
+            if (selectedBlog != null)
+            {
+                Preferences.Default.Set(Constants.CurrentSelectedBlogIdStorageName, selectedBlog.BlogId.ToString());
+
+                await _cacheService.RefreshAsync(selectedBlog.BlogId!.Value);
             }
         }
 
+        private async Task LoadBlogsInitiallyAndSelectOneAsync()
+        {
+            Preferences.Default.Set(Constants.HasObtainedValidAccessTokenStorageName, true);
 
+            _blogClient.Init(this.AzureFunctionBaseUrl!);
+
+            List<BlogOverview>? blogs = await _cacheService.GetBlogsAsync(30, true);
+
+            if (blogs?.Any() ?? false)
+            {
+                await GetSelectedBlogAsync(blogs);
+
+                await _navigationService.NavigateToRouteAsync(_returnRoute, false, ShellNavigationSearchDirection.Up);
+            }
+            else
+            {
+                _logger.LogError("No blogs found at {ApiBaseUrl}", this.AzureFunctionBaseUrl);
+
+                //TODO: ASK TO ADD NEW BLOG?
+            }
+        }
+        
+        
         public string? AzureFunctionBaseUrl
         {
             get => _azureFunctionBaseUrl;
@@ -306,8 +349,6 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 
 
         public AsyncRelayCommand AuthorizationCommand => _authorizationCommand ??= new AsyncRelayCommand(AuthorizeAsync, CanExecuteLoginAsync);
-
-
         public RelayCommand AddAzureAdScopeCommand => _addAzureAdScopeCommand ??= new RelayCommand(AddAzureAdScope, CanExecuteAddAzureAdScope);
 
 

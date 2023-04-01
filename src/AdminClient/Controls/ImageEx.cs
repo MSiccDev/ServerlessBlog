@@ -8,9 +8,6 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Controls
 		public static readonly BindableProperty TintColorProperty =
 			BindableProperty.Create(nameof(TintColor), typeof(Color), typeof(ImageEx), default(Color), propertyChanged: OnTintColorPropertyChanged);
 
-		public static readonly BindableProperty PlaceholderImageSourceProperty =
-			BindableProperty.Create(nameof(PlaceholderImageSource), typeof(ImageSource), typeof(ImageEx), default(ImageSource), propertyChanged: OnPlaceholderImageSourcePropertyChanged);
-
 		public ImageEx()
 		{
 
@@ -28,43 +25,14 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Controls
 			}
 		}
 
-		private static void OnPlaceholderImageSourcePropertyChanged(BindableObject bindable, object oldValue, object newValue)
-		{
-			// if (bindable is ImageEx imageEx)
-			// {
-			// 	if (newValue != null && imageEx.Source == null)
-			// 	{
-			// 		imageEx.Source = (ImageSource)newValue;
-			// 	}
-			// }
-		}
-
 		public Color TintColor
 		{
 			get => (Color)GetValue(TintColorProperty);
 			set => SetValue(TintColorProperty, value);
 		}
 
-		public ImageSource PlaceholderImageSource
-		{
-			get => (ImageSource)GetValue(PlaceholderImageSourceProperty);
-			set => SetValue(PlaceholderImageSourceProperty, value);
-		}
 
-		protected override void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-		{
-			base.OnPropertyChanged(propertyName);
 
-			if (propertyName == nameof(this.Source))
-			{
-				Console.WriteLine($"Source is: {this.Source}");
-				
-				if (this.Source == default(ImageSource))
-				{
-					this.Source = PlaceholderImageSource;
-				}
-			}
-		}
 	}
 }
 

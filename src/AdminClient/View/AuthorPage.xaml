@@ -1,12 +1,46 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MSiccDev.ServerlessBlog.AdminClient.View.AuthorPage"
-             Title="AuthorPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
-</ContentPage>
+
+<view:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:view="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.View"
+               xmlns:viewModel="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.ViewModel"
+               xmlns:controls="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.Controls"
+               xmlns:systemIcons="clr-namespace:MSiccDev.Libs.Maui.SystemIcons;assembly=MSiccDev.Libs.Maui.SystemIcons" xmlns:converters="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.Converters"
+               x:Class="MSiccDev.ServerlessBlog.AdminClient.View.AuthorPage"
+               x:DataType="viewModel:AuthorPageViewModel">
+    <view:BasePage.Resources>
+         <converters:UriImageSourceWithPlaceholderConverter
+            x:Key="MissingPersonImageConverter"
+            PlaceholderImageSource="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=person.fill}}">
+        </converters:UriImageSourceWithPlaceholderConverter>
+    </view:BasePage.Resources>
+    <Grid>
+        <CollectionView ItemsSource="{Binding Authors}">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame x:DataType="viewModel:AuthorViewModel" BackgroundColor="Black"> 
+                        <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="3*,7*">
+                            <Image
+                                Source="{Binding AuthorImageUrl, Converter={StaticResource MissingPersonImageConverter}}"
+                                Grid.RowSpan="2"
+                                Grid.Column="0"
+                                HeightRequest="100"
+                                WidthRequest="100"
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center" />
+                                <controls:FramedContentControlWithText Grid.Row="0" Grid.Column="1" Margin="12" Text="DisplayName">
+                                    <controls:EntryEx Placeholder="DisplayName" FontSize="Subtitle" Text="{Binding DisplayName, Mode=TwoWay}" Margin="12" />
+                                </controls:FramedContentControlWithText>
+                                <controls:FramedContentControlWithText Grid.Row="1" Grid.Column="1" Margin="12" Text="UserName">
+                                    <controls:EntryEx Placeholder="UserName" FontSize="Subtitle" Text="{Binding UserName, Mode=TwoWay}" Margin="12" />
+                                </controls:FramedContentControlWithText>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</view:BasePage>

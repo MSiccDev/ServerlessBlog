@@ -9,7 +9,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 		public NavigationService(ILogger<NavigationService> logger) =>
 			_logger = logger;
 
-		public async Task NavigateToRouteAsync(string route, bool keepNavigationStack = false, ShellNavigationSearchDirection searchDirection = ShellNavigationSearchDirection.Down)
+		public async Task NavigateToRouteAsync(string? route, bool keepNavigationStack = false, ShellNavigationSearchDirection searchDirection = ShellNavigationSearchDirection.Down)
 		{
 			string navigationPrefix = keepNavigationStack ? string.Empty : "//";
 

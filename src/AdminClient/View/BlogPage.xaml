@@ -3,9 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:systemIcons="clr-namespace:MSiccDev.Libs.Maui.SystemIcons;assembly=MSiccDev.Libs.Maui.SystemIcons"
              xmlns:controls="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.Controls"
-             xmlns:viewmodel="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.ViewModel"
-             x:Class="MSiccDev.ServerlessBlog.AdminClient.View.BlogPage" x:DataType="viewmodel:BlogPageViewModel"
+             xmlns:viewmodel="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.ViewModel" xmlns:converters="clr-namespace:MSiccDev.ServerlessBlog.AdminClient.Converters"
+             x:Class="MSiccDev.ServerlessBlog.AdminClient.View.BlogPage"
+             x:DataType="viewmodel:BlogPagePageViewModel"
              Title="Blog">
+    <ContentPage.Resources>
+        <converters:UriImageSourceWithPlaceholderConverter
+            x:Key="MissingImageGeneralConverter"
+            PlaceholderImageSource="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=photo.fill}}">
+        </converters:UriImageSourceWithPlaceholderConverter>
+    </ContentPage.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -33,9 +41,11 @@
             </Grid.ColumnDefinitions>
 
             <!-- ReSharper disable Xaml.InvalidType -->
-            <controls:ImageEx Grid.Row="0" Grid.ColumnSpan="4"
-                              Source="{Binding BlogLogoUrl, UpdateSourceEventName=PropertyChanged}" HeightRequest="300"
-                              PlaceholderImageSource="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=photo.fill}}" />
+            <Image Grid.Row="0"
+                   Grid.ColumnSpan="4"
+                   Source="{Binding BlogLogoUrl, Converter={StaticResource MissingImageGeneralConverter}}"
+                   HeightRequest="300"
+                               />
             <ImageButton Grid.Row="1" Grid.Column="1" Command="{Binding UploadBlogImageCommand}"
                          Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=plus.square.fill}}" />
             <ImageButton Grid.Row="1" Grid.Column="2" Command="{Binding DeleteBlogImageCommand}"

@@ -6,9 +6,11 @@ using MSiccDev.ServerlessBlog.ClientSdk;
 using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
-	public class BlogPageViewModel : BaseViewModel
+	// ReSharper disable ClassNeverInstantiated.Global
+	public class BlogPagePageViewModel : BasePageViewModel
+		// ReSharper restore ClassNeverInstantiated.Global
 	{
-		private readonly ILogger<BlogPageViewModel> _logger;
+		private readonly ILogger<BlogPagePageViewModel> _logger;
 		private readonly ICacheService _cacheService;
 		private readonly IBlogClient _blogClient;
 
@@ -21,7 +23,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 		private AsyncRelayCommand? _refreshCommand;
 		private AsyncRelayCommand? _saveCommand;
 
-		public BlogPageViewModel(ILogger<BlogPageViewModel> logger, ICacheService cacheService, IBlogClient blogClient)
+		public BlogPagePageViewModel(ILogger<BlogPagePageViewModel> logger, ICacheService cacheService, IBlogClient blogClient)
 		{
 			_logger = logger;
 			_cacheService = cacheService;

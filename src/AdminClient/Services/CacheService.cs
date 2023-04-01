@@ -12,6 +12,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
     {
         private readonly IBlogClient _blogClient;
         private readonly ILogger<ICacheService> _logger;
+        private bool _debugLocally;
 
         public event EventHandler? AuthorizationExpired;
         
@@ -27,6 +28,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
                 BarrelUtils.SetBaseCachePath(path);
 
             Barrel.ApplicationId = id;
+
+            _debugLocally = Preferences.Get(Constants.DebugLocallyStorageName, false);
         }
 
 
@@ -57,15 +60,15 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
             if (!forceRefresh && !Barrel.Current.IsExpired(key))
                 return result;
 
-            var accessTokenData = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(await SecureStorage.Default.GetAsync(Constants.AzureAdAccessTokenStorageName));
+            AzureAdAccessTokenResponse? accessTokenData = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(await SecureStorage.Default.GetAsync(Constants.AzureAdAccessTokenStorageName));
 
-            if (accessTokenData == null)
+            if (accessTokenData == null && !_debugLocally)
             {
                 _logger.LogError("Error fetching blogs: No valid AccessToken found in Storage");
                 return result;
             }
 
-            if (!string.IsNullOrWhiteSpace(accessTokenData.AccessToken))
+            if (!string.IsNullOrWhiteSpace(accessTokenData.AccessToken) || _debugLocally)
             {
                 BlogEntitySet<TEntity> apiResult = await _blogClient.GetEntitiesAsync<TEntity>(accessTokenData.AccessToken, blogId, null, skip, count);
 
