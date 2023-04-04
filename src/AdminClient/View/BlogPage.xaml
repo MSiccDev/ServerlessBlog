@@ -46,9 +46,9 @@
                    Source="{Binding BlogLogoUrl, Converter={StaticResource MissingImageGeneralConverter}}"
                    HeightRequest="300"
                                />
-            <ImageButton Grid.Row="1" Grid.Column="1" Command="{Binding UploadBlogImageCommand}"
+            <ImageButton Grid.Row="1" Grid.Column="1" Command="{Binding UploadBlogImageCommand}" HeightRequest="24"
                          Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=plus.square.fill}}" />
-            <ImageButton Grid.Row="1" Grid.Column="2" Command="{Binding DeleteBlogImageCommand}"
+            <ImageButton Grid.Row="1" Grid.Column="2" Command="{Binding DeleteBlogImageCommand}" HeightRequest="24"
                          Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=trash.fill}}" />
             <!-- ReSharper restore Xaml.InvalidType -->
         </Grid>

@@ -45,6 +45,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
             if (!cachedAuthors?.Any() ?? true)
                 return;
 
+            this.Authors.Clear();
             foreach (Author author in cachedAuthors!)
             {
                 this.Authors.Add(new AuthorViewModel(author));
