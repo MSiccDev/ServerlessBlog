@@ -7,7 +7,7 @@ using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
 	// ReSharper disable ClassNeverInstantiated.Global
-	public class BlogPagePageViewModel : BasePageViewModel
+	public class BlogPagePageViewModel : BasePageWithAuthorizationViewModel
 		// ReSharper restore ClassNeverInstantiated.Global
 	{
 		private readonly ILogger<BlogPagePageViewModel> _logger;
@@ -23,19 +23,18 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 		private AsyncRelayCommand? _refreshCommand;
 		private AsyncRelayCommand? _saveCommand;
 
-		public BlogPagePageViewModel(ILogger<BlogPagePageViewModel> logger, ICacheService cacheService, IBlogClient blogClient)
+		public BlogPagePageViewModel(IAuthorizationService authorizationService, ILogger<BlogPagePageViewModel> logger, ICacheService cacheService, IBlogClient blogClient) :
+			base(authorizationService)
 		{
 			_logger = logger;
 			_cacheService = cacheService;
 			_blogClient = blogClient;
-
+			
 			Connectivity.ConnectivityChanged += (sender, args) =>
 			{
 				NotifyCommandCanExecuteChanges();
 			};
 		}
-
-
 
 		protected override async Task ExecuteViewAppearingAsync()
 		{
@@ -76,6 +75,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 				_savedSelectedBlog = await _cacheService.GetCurrentBlogAsync(_savedSelectedBlog.BlogId.GetValueOrDefault(), forceRefresh: true);
 				
 				RaisePropertyChanges();
+			}
+			else
+			{
+				await _authorizationService.RefreshAuthorizationAsync();
 			}
 		}
 

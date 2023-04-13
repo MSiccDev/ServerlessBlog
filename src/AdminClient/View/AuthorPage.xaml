@@ -12,9 +12,11 @@
                Title="{Binding Title}"
                x:DataType="viewModel:AuthorPageViewModel">
     <view:BasePage.Resources>
-         <converters:UriImageSourceWithPlaceholderConverter
+        <!-- ReSharper disable Xaml.InvalidType -->
+        <converters:UriImageSourceWithPlaceholderConverter
             x:Key="MissingPersonImageConverter"
             PlaceholderImageSource="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=person.fill}}">
+            <!-- ReSharper restore Xaml.InvalidType -->
         </converters:UriImageSourceWithPlaceholderConverter>
     </view:BasePage.Resources>
     <Grid>
@@ -34,27 +36,44 @@
                                 WidthRequest="100"
                                 VerticalOptions="Center"
                                 HorizontalOptions="Center"
-                                TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemTeal}}"/>
+                                TintColor="{OnPlatform MacCatalyst={StaticResource Ios_SystemTeal}}" />
                                 <controls:FramedContentControlWithText Grid.Row="0"
                                                                        Grid.Column="1"
                                                                        Margin="12"
                                                                        Text="Display Name">
-                                    <controls:EntryEx Placeholder="Display Name" FontSize="Subtitle" Text="{Binding DisplayName, Mode=TwoWay}" Margin="12"/>
-                                </controls:FramedContentControlWithText>
-                                <controls:FramedContentControlWithText Grid.Row="1" Grid.Column="1" Margin="12" Text="User Name">
-                                    <controls:EntryEx Placeholder="User Name" FontSize="Subtitle" Text="{Binding UserName, Mode=TwoWay}" Margin="12" />
-                                </controls:FramedContentControlWithText>
+                                    <controls:EntryEx 
+                                                Placeholder="Display Name" 
+                                                FontSize="Subtitle"
+                                                VerticalOptions="Center"
+                                                VerticalTextAlignment="Center"
+                                                Text="{Binding DisplayName, Mode=TwoWay}" 
+                                                Margin="12"/>
+                                    </controls:FramedContentControlWithText>
+                            
+                                    <controls:FramedContentControlWithText Grid.Row="1" Grid.Column="1" Margin="12" Text="User Name">
+                                        <controls:EntryEx
+                                            Placeholder="User Name"
+                                            FontSize="Subtitle"
+                                            VerticalOptions="Center"
+                                            VerticalTextAlignment="Center"
+                                            Text="{Binding UserName, Mode=TwoWay}"
+                                            Margin="12" />
+                                    </controls:FramedContentControlWithText>
 
+                            <!-- ReSharper disable Xaml.InvalidType -->
                             <ImageButton Grid.Row="0" Grid.Column="3" HeightRequest="24"
-                                Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=arrow.up.circle.fill}}">
+                                         Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=arrow.up.circle.fill}}">
+                                <!-- ReSharper restore Xaml.InvalidType -->
                                 <ImageButton.Behaviors>
                                     <behaviors:IconTintColorBehavior TintColor="Green"/>
                                 </ImageButton.Behaviors>
 
                             </ImageButton>
 
+                            <!-- ReSharper disable Xaml.InvalidType -->
                             <ImageButton Grid.Row="1" Grid.Column="3" HeightRequest="24"
-                                Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=trash.fill}}" />
+                                         Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=trash.fill}}" />
+                            <!-- ReSharper restore Xaml.InvalidType -->
 
                         </Grid>
                     </Frame>

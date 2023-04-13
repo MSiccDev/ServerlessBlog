@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection.Metadata;
 using Microsoft.Extensions.Logging;
 using MonkeyCache;
 using MonkeyCache.SQLite;
@@ -15,6 +16,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
         private bool _debugLocally;
 
         public event EventHandler? AuthorizationExpired;
+        public event EventHandler<RequestError?>? ApiErrorOccured;
         
         public CacheService(IBlogClient blogClient, ILogger<CacheService> logger)
         {
@@ -70,7 +72,7 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 
             if (!string.IsNullOrWhiteSpace(accessTokenData.AccessToken) || _debugLocally)
             {
-                BlogEntitySet<TEntity> apiResult = await _blogClient.GetEntitiesAsync<TEntity>(accessTokenData.AccessToken, blogId, null, skip, count);
+                BlogEntitySet<TEntity> apiResult = await _blogClient.GetEntitiesAsync<TEntity>(accessTokenData.AccessToken, blogId, null, skip, count, false);
 
                 if (apiResult.Value?.Any() ?? false)
                     result = apiResult.Value.Take(count).ToList();
@@ -82,6 +84,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
                     if (apiResult.Error.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         this.AuthorizationExpired?.Invoke(this, EventArgs.Empty);
+                    }
+                    else
+                    {
+                        this.ApiErrorOccured?.Invoke(this, apiResult.Error);
                     }
                 }
                 

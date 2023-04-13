@@ -5,13 +5,15 @@ using MSiccDev.ServerlessBlog.ClientSdk;
 using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
-    public class AuthorPageViewModel : BasePageViewModel
+    public class AuthorPageViewModel : BasePageWithAuthorizationViewModel
     {
         private readonly ILogger<AuthorPageViewModel> _logger;
         private readonly ICacheService _cacheService;
         private readonly IBlogClient _blogClient;
 
-        public AuthorPageViewModel(ILogger<AuthorPageViewModel> logger, ICacheService cacheService, IBlogClient blogClient)
+
+        public AuthorPageViewModel(IAuthorizationService authorizationService, ILogger<AuthorPageViewModel> logger, ICacheService cacheService, IBlogClient blogClient) :
+            base(authorizationService)
         {
             _logger = logger;
             _cacheService = cacheService;
@@ -23,7 +25,6 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
             };
 
             this.Title = "Authors";
-
         }
 
         private void NotifyCommandCanExecuteChanges()

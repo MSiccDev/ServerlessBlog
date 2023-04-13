@@ -46,7 +46,9 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         {
             serviceCollection.AddHttpClient();
             serviceCollection.AddSingleton<INavigationService, NavigationService>();
+            serviceCollection.AddSingleton<IAuthorizationService, AuthorizationService>();
             serviceCollection.AddSingleton<IActionSheetService, ActionSheetService>();
+            serviceCollection.AddSingleton<IDialogService, DialogService>();
             serviceCollection.AddSingleton<IBlogClient, BlogClient>();
             serviceCollection.AddSingleton<ICacheService, CacheService>();
         }
