@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using MSiccDev.ServerlessBlog.AdminClient.Common;
 using MSiccDev.ServerlessBlog.AdminClient.Services;
-using MSiccDev.ServerlessBlog.ClientSdk;
 using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
@@ -12,7 +11,6 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 	{
 		private readonly ILogger<BlogPagePageViewModel> _logger;
 		private readonly ICacheService _cacheService;
-		private readonly IBlogClient _blogClient;
 
 		private BlogOverview? _savedSelectedBlog;
 
@@ -23,12 +21,11 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 		private AsyncRelayCommand? _refreshCommand;
 		private AsyncRelayCommand? _saveCommand;
 
-		public BlogPagePageViewModel(IAuthorizationService authorizationService, ILogger<BlogPagePageViewModel> logger, ICacheService cacheService, IBlogClient blogClient) :
+		public BlogPagePageViewModel(IAuthorizationService authorizationService, ILogger<BlogPagePageViewModel> logger, ICacheService cacheService) :
 			base(authorizationService)
 		{
 			_logger = logger;
 			_cacheService = cacheService;
-			_blogClient = blogClient;
 			
 			Connectivity.ConnectivityChanged += (sender, args) =>
 			{

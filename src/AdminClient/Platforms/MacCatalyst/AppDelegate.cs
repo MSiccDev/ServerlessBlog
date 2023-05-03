@@ -12,6 +12,8 @@ namespace AdminClient
 		protected override MauiApp CreateMauiApp()
 		{
 			return MauiProgram.CreateMauiApp();
+			
+			
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <view:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -22,56 +22,141 @@
     <Grid>
         <CollectionView ItemsSource="{Binding Authors}" Margin="10">
             <CollectionView.ItemsLayout>
-                <GridItemsLayout Orientation="Vertical" Span="1" HorizontalItemSpacing="20" VerticalItemSpacing="10"/>
+                <GridItemsLayout Orientation="Vertical" Span="1" HorizontalItemSpacing="20" VerticalItemSpacing="10" />
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame x:DataType="viewModel:AuthorViewModel" BackgroundColor="Transparent"> 
+                    <Frame x:DataType="viewModel:AuthorViewModel" BackgroundColor="Transparent">
                         <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="35*,55*, 10*">
-                            <controls:ImageEx
-                                Source="{Binding AuthorImageUrl, Converter={StaticResource MissingPersonImageConverter}}"
-                                Grid.RowSpan="2"
-                                Grid.Column="0"
-                                HeightRequest="100"
-                                WidthRequest="100"
-                                VerticalOptions="Center"
-                                HorizontalOptions="Center"
-                                TintColor="{OnPlatform MacCatalyst={StaticResource Ios_SystemTeal}}" />
-                                <controls:FramedContentControlWithText Grid.Row="0"
-                                                                       Grid.Column="1"
-                                                                       Margin="12"
-                                                                       Text="Display Name">
-                                    <controls:EntryEx 
-                                                Placeholder="Display Name" 
-                                                FontSize="Subtitle"
-                                                VerticalOptions="Center"
-                                                VerticalTextAlignment="Center"
-                                                Text="{Binding DisplayName, Mode=TwoWay}" 
-                                                Margin="12"/>
-                                    </controls:FramedContentControlWithText>
-                            
-                                    <controls:FramedContentControlWithText Grid.Row="1" Grid.Column="1" Margin="12" Text="User Name">
-                                        <controls:EntryEx
-                                            Placeholder="User Name"
-                                            FontSize="Subtitle"
-                                            VerticalOptions="Center"
-                                            VerticalTextAlignment="Center"
-                                            Text="{Binding UserName, Mode=TwoWay}"
-                                            Margin="12" />
-                                    </controls:FramedContentControlWithText>
+                            <Grid Grid.RowSpan="2"
+                                  Grid.Column="0"
+                                  RowSpacing="0"
+                                  WidthRequest="100"
+                                  HeightRequest="100"
+                                  ColumnSpacing="0"
+                                  ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,*">
+
+                                <controls:ImageEx
+                                    Grid.RowSpan="2"
+                                    Grid.ColumnSpan="2"
+                                    ZIndex="1"
+                                    Source="{Binding AuthorImageUrl, Converter={StaticResource MissingPersonImageConverter}}"
+                                    HeightRequest="100"
+                                    WidthRequest="100"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="Center"
+                                    TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SystemTeal}}" />
+
+
+                                <!-- <ImageButton Grid.Row="0" -->
+                                <!--              Grid.Column="1" -->
+                                <!--              Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=pencil}}" -->
+                                <!--              HeightRequest="24" -->
+                                <!--              WidthRequest="24" -->
+                                <!--              ZIndex="3" -->
+                                <!--              Command="{Binding AuthorImageEditCommand}"> -->
+                                <!--     <ImageButton.Behaviors> -->
+                                <!--         <behaviors:IconTintColorBehavior -->
+                                <!--             TintColor="White" /> -->
+                                <!--     </ImageButton.Behaviors> -->
+                                <!-- </ImageButton> -->
+                                <controls:ImageEx Grid.Row="0"
+                                                  Grid.Column="1"
+                                                  Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=pencil}}"
+                                                  HeightRequest="24"
+                                                  WidthRequest="24"
+                                                  TintColor="{OnPlatform MacCatalyst={DynamicResource Ios_SecondaryLabel}}"
+                                                  ZIndex="3">
+                                    <Image.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding AuthorImageEditCommand}" />
+                                    </Image.GestureRecognizers>
+                                </controls:ImageEx>
+                            </Grid>
+
+
+                            <Frame
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="12"
+                                Padding="4"
+                                BackgroundColor="Transparent"
+                                BorderColor="{OnPlatform MacCatalyst={DynamicResource Ios_OpaqueSeparator}}">
+                                <Grid RowDefinitions="*" ColumnDefinitions="4*,6*">
+                                    <Label
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        FontAttributes="Bold"
+                                        FontAutoScalingEnabled="False"
+                                        FontSize="Medium"
+                                        VerticalOptions="Center"
+                                        VerticalTextAlignment="Center"
+                                        TextColor="{OnPlatform MacCatalyst={DynamicResource Ios_SecondaryLabel}}"
+                                        Text="Display Name:"
+                                        Margin="12" />
+                                    <controls:EntryEx
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Placeholder="Display Name"
+                                        FontSize="Medium"
+                                        VerticalOptions="Center"
+                                        VerticalTextAlignment="Center"
+                                        Text="{Binding DisplayName, Mode=TwoWay}"
+                                        Margin="12" />
+                                </Grid>
+                            </Frame>
+
+                            <Frame
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Margin="12"
+                                Padding="4"
+                                BackgroundColor="Transparent"
+                                BorderColor="{OnPlatform MacCatalyst={DynamicResource Ios_OpaqueSeparator}}">
+                                <Grid RowDefinitions="*" ColumnDefinitions="4*,6*">
+                                    <Label
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        FontAttributes="Bold"
+                                        FontAutoScalingEnabled="False"
+                                        FontSize="Medium"
+                                        VerticalOptions="Center"
+                                        VerticalTextAlignment="Center"
+                                        TextColor="{OnPlatform MacCatalyst={DynamicResource Ios_SecondaryLabel}}"
+                                        Text="User Name:"
+                                        Margin="12" />
+                                    <controls:EntryEx
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Placeholder="User Name"
+                                        FontSize="Medium"
+                                        VerticalOptions="Center"
+                                        VerticalTextAlignment="Center"
+                                        Text="{Binding UserName, Mode=TwoWay}"
+                                        Margin="12" />
+                                </Grid>
+                            </Frame>
 
                             <!-- ReSharper disable Xaml.InvalidType -->
-                            <ImageButton Grid.Row="0" Grid.Column="3" HeightRequest="24"
-                                         Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=arrow.up.circle.fill}}">
+                            <ImageButton Grid.Row="0"
+                                         Grid.Column="3"
+                                         HeightRequest="24"
+                                         WidthRequest="24"
+                                         Command="{Binding AuthorUpdateClickedCommand}"
+                                         Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=checkmark.circle.fill}}">
                                 <!-- ReSharper restore Xaml.InvalidType -->
                                 <ImageButton.Behaviors>
-                                    <behaviors:IconTintColorBehavior TintColor="Green"/>
+                                    <behaviors:IconTintColorBehavior TintColor="Green" />
                                 </ImageButton.Behaviors>
 
                             </ImageButton>
 
                             <!-- ReSharper disable Xaml.InvalidType -->
-                            <ImageButton Grid.Row="1" Grid.Column="3" HeightRequest="24"
+                            <ImageButton Grid.Row="1"
+                                         Grid.Column="3"
+                                         HeightRequest="24"
+                                         WidthRequest="24"
+                                         Command="{Binding AuthorDeleteClickedCommand}"
                                          Source="{OnPlatform MacCatalyst={systemIcons:SfSymbolsImageSource SymbolName=trash.fill}}" />
                             <!-- ReSharper restore Xaml.InvalidType -->
 

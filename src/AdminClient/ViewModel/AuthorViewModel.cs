@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
@@ -7,30 +8,67 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 		private MediumViewWodel? _authorImage;
 		private Uri? _authorImageUrl;
 
-		private Author _author;
+		private readonly WeakEventManager _weakEventManager;
 
-		public AuthorViewModel(Author author)
+		public event EventHandler<AuthorViewModel> AuthorImageChangeRequested
 		{
-			_author = author ?? throw new ArgumentNullException(nameof(author));
-			this.AuthorImageUrl = _author.UserImage?.MediumUrl;
+			add => _weakEventManager.AddEventHandler(value);
+			remove => _weakEventManager.RemoveEventHandler(value);
 		}
 
+		public event EventHandler<AuthorViewModel> AuthorUpdateRequested
+		{
+			add => _weakEventManager.AddEventHandler(value);
+			remove => _weakEventManager.RemoveEventHandler(value);
+		}
+
+		public event EventHandler<AuthorViewModel> AuthorDeleteRequested
+		{
+			add => _weakEventManager.AddEventHandler(value);
+			remove => _weakEventManager.RemoveEventHandler(value);
+		}
+		
+		public AuthorViewModel(Author author)
+		{
+			this.Author = author ?? throw new ArgumentNullException(nameof(author));
+			this.AuthorImageUrl = this.Author.UserImage?.MediumUrl;
+
+			_weakEventManager = new WeakEventManager();
+			this.AuthorImageEditCommand = new RelayCommand(RequestAuthorImageUpdate);
+			this.AuthorUpdateClickedCommand = new RelayCommand(RequestAuthorUpdate);
+			this.AuthorDeleteClickedCommand = new RelayCommand(RequestAuthorDelete);
+		}
+
+
+
+		private void RequestAuthorImageUpdate() =>
+			_weakEventManager.HandleEvent(this, this, nameof(this.AuthorImageChangeRequested));
+
+		private void RequestAuthorDelete() =>
+			_weakEventManager.HandleEvent(this, this, nameof(this.AuthorDeleteRequested));
+
+		private void RequestAuthorUpdate() =>
+			_weakEventManager.HandleEvent(this, this, nameof(this.AuthorUpdateRequested));
+
+		public Author Author { get; }
+
+		
 		public string DisplayName
 		{
-			get => _author.DisplayName;
+			get => this.Author.DisplayName;
 			set
 			{
-				_author.DisplayName = value;
+				this.Author.DisplayName = value;
 				OnPropertyChanged();
 			}
 		}
 
 		public string UserName
 		{
-			get => _author.UserName;
+			get => this.Author.UserName;
 			set
 			{
-				_author.DisplayName = value;
+				this.Author.DisplayName = value;
 				OnPropertyChanged();
 			}
 		}
@@ -44,5 +82,9 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 				OnPropertyChanged();
 			}
 		}
+
+		public RelayCommand AuthorImageEditCommand { get; }
+		public RelayCommand AuthorUpdateClickedCommand { get; }
+		public RelayCommand AuthorDeleteClickedCommand { get; }
 	}
 }

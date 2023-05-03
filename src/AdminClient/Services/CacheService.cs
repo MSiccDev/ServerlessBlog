@@ -1,5 +1,4 @@
 using System.Net;
-using System.Reflection.Metadata;
 using Microsoft.Extensions.Logging;
 using MonkeyCache;
 using MonkeyCache.SQLite;
@@ -17,6 +16,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 
         public event EventHandler? AuthorizationExpired;
         public event EventHandler<RequestError?>? ApiErrorOccured;
+
+        public event EventHandler? CacheHasChanged;
         
         public CacheService(IBlogClient blogClient, ILogger<CacheService> logger)
         {
@@ -51,7 +52,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
             => await GetCachedBlogEntitiesAsync<Post>(blogId, typeof(Post).GetResourceName(), cacheValidity, forceRefresh, count, skip);
 
 
-        private async Task<List<TEntity>?> GetCachedBlogEntitiesAsync<TEntity>(Guid? blogId = null, string? resourceName = null, int cacheValidity = 30, bool forceRefresh = false, int count = 10, int skip = 0) where TEntity : DtoModelBase
+        private async Task<List<TEntity>?> GetCachedBlogEntitiesAsync<TEntity>(Guid? blogId = null, string? resourceName = null, int cacheValidity = 30, bool forceRefresh = false, int count = 10, int skip = 0)
+            where TEntity : DtoModelBase
         {
             string? key = null;
             resourceName = string.IsNullOrWhiteSpace(resourceName) ? string.Empty : $"_{resourceName}";
@@ -117,5 +119,44 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
             await GetPostsAsync(blogId, forceRefresh: true).ConfigureAwait(false);
         }
 
+        public async Task DeleteAsync<TEntity>(Guid blogId, Guid? resourceId)
+            where TEntity : DtoModelBase
+        {
+            AzureAdAccessTokenResponse? accessTokenData = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(await SecureStorage.Default.GetAsync(Constants.AzureAdAccessTokenStorageName));
+
+            if (accessTokenData == null && !_debugLocally)
+            {
+                _logger.LogError("Error deleting entity from blog with {BlogId} and {ResourceId}: No valid AccessToken found in Storage", blogId, resourceId);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(accessTokenData!.AccessToken) || _debugLocally)
+            {
+                bool deleted = await _blogClient.DeleteAsync<TEntity>(accessTokenData.AccessToken!, blogId, resourceId);
+
+                if (deleted)
+                    this.CacheHasChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public async Task UpdateAsync<TEntity>(TEntity entityToUpdate)
+            where TEntity : DtoModelBase
+        {
+            AzureAdAccessTokenResponse? accessTokenData = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(await SecureStorage.Default.GetAsync(Constants.AzureAdAccessTokenStorageName));
+
+            if (accessTokenData == null && !_debugLocally)
+            {
+                _logger.LogError("Error updating entity on blog with {BlogId} and {ResourceId}: No valid AccessToken found in Storage", entityToUpdate.BlogId.GetValueOrDefault(), entityToUpdate.ResourceId.GetValueOrDefault());
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(accessTokenData!.AccessToken) || _debugLocally)
+            {
+                bool updated = await _blogClient.UpdateAsync(accessTokenData.AccessToken!, entityToUpdate);
+
+                if (updated)
+                    this.CacheHasChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
 }
