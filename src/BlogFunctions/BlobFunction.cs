@@ -53,6 +53,9 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
+                //use byte[]
+                //use Content-Disposition Header for indicating the name of the file!
+
                 FileUploadRequest? fileUploadRequest = JsonConvert.DeserializeObject<FileUploadRequest>(requestBody);
 
                 if (fileUploadRequest != null)
@@ -125,8 +128,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             string? fileName = req.GetProperty("fileName");
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                _logger.LogError("Error: file cannot be deleted without providing the file name");
-                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Submitted file upload is invalid, blob cannot be created.");
+                _logger.LogError("Error: file cannot be found without providing the file name");
+                return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Please provide a valid file name.");
             }
 
             try
@@ -151,18 +154,27 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error deleting file blob with Name \'{Name}\'", fileName);
+                        _logger.LogError(ex, "Error getting file blob with Name \'{Name}\'", fileName);
+
+                        if (ex is RequestFailedException requestFailedEx)
+                        {
+                            if (requestFailedEx.ErrorCode == "BlobNotFound")
+                                return await req.CreateResponseDataAsync(HttpStatusCode.NotFound, "The specified file does not exist on the server.");
+
+                            return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, requestFailedEx.Message);
+                        }
+                        
                         return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
                     }
                 }
 
-                _logger.LogError("Error deleting file due to missing blob storage connection string");
+                _logger.LogError("Error getting file due to missing blob storage connection string");
                 return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting file blob with Name \'{Name}\'", fileName);
+                _logger.LogError(ex, "Error getting file blob with Name \'{Name}\'", fileName);
                 return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
             }
         }
