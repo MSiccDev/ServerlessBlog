@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net.Http.Headers;
 using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.ClientSdk
 {
@@ -51,6 +53,37 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
 
 
             throw new NotSupportedException($"Type {type} is not supported");
+        }
+
+        public static MediaTypeHeaderValue? GetMediaTypeHeader(this string fileName)
+        {
+            //https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+
+            string? fileExtension = Path.GetExtension(fileName);
+
+            if (string.IsNullOrWhiteSpace(fileExtension))
+                return null;
+
+            switch (fileExtension)
+            {
+                case ".jpg":
+                case ".jpeg":
+                    return new MediaTypeHeaderValue("image/jpeg");
+                case ".png":
+                    return new MediaTypeHeaderValue("image/png");
+                case ".gif":
+                    return new MediaTypeHeaderValue("image/gif");
+                case ".webp":
+                    return new MediaTypeHeaderValue("image/webp");
+                case ".pdf":
+                    return new MediaTypeHeaderValue("application/pdf");
+                case ".mp4":
+                    return new MediaTypeHeaderValue("video/mp4");
+                case ".mpeg":
+                    return new MediaTypeHeaderValue("video/mpeg");
+                default:
+                    throw new NotImplementedException();
+            }
         }
     }
 }

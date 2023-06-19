@@ -221,5 +221,161 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             }
         }
 
+        public async Task<FileUploadResponse?> UploadFileAsync(string accessToken, byte[] fileBytes, string containerName, string fileName, bool overwrite = true, bool throwExceptions = true)
+        {
+            if (containerName == null)
+                throw new ArgumentNullException(nameof(containerName));
+
+            if (fileBytes == null)
+                throw new ArgumentNullException(nameof(fileBytes));
+
+            if (fileName == null)
+                throw new ArgumentNullException(nameof(fileName));
+
+            if (_httpClient == null)
+                throw new ArgumentException("Please call the Init method first.", nameof(_httpClient));
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(accessToken));
+
+            try
+            {
+                string requestUrl = $"{_apiBaseUrl}/blob";
+
+                requestUrl = requestUrl.AddParameterToUri("overwrite", overwrite.ToString());
+
+                var uploadRequest = new FileUploadRequest
+                {
+                    Base64Content = Convert.ToBase64String(fileBytes),
+                    FileName = fileName,
+                    ContainerName = containerName
+                };
+
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri(requestUrl),
+                    Content = new StringContent(JsonConvert.SerializeObject(uploadRequest), Encoding.UTF8, "application/json")
+                };
+
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                HttpResponseMessage responseMessage = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
+
+                if (!responseMessage.IsSuccessStatusCode)
+                    return null;
+
+                string? responseContent = await responseMessage.Content.ReadAsStringAsync();
+
+                return string.IsNullOrWhiteSpace(responseContent) ? null : JsonConvert.DeserializeObject<FileUploadResponse>(responseContent);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading file '{FileName}' to container {ContainerName}", fileName, containerName);
+
+                if (!throwExceptions)
+                {
+                    return null;
+                }
+
+                throw;
+            }
+        }
+
+        public async Task<byte[]?> GetFileAsync(string accessToken, string containerName, string fileName, bool throwExceptions = true)
+        {
+            if (containerName == null)
+                throw new ArgumentNullException(nameof(containerName));
+
+            if (fileName == null)
+                throw new ArgumentNullException(nameof(fileName));
+
+            if (_httpClient == null)
+                throw new ArgumentException("Please call the Init method first.", nameof(_httpClient));
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(accessToken));
+
+            try
+            {
+                string requestUrl = $"{_apiBaseUrl}/blob";
+
+                requestUrl = requestUrl.AddParameterToUri(nameof(containerName), containerName).
+                                        AddParameterToUri(nameof(fileName), fileName);
+
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(requestUrl)
+                };
+
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                HttpResponseMessage responseMessage = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
+
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    return await responseMessage.Content.ReadAsByteArrayAsync();
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting  file '{FileName}' from container {ContainerName}", fileName, containerName);
+
+                if (!throwExceptions)
+                {
+                    return null;
+                }
+
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteFileAsync(string accessToken, string containerName, string fileName, bool throwExceptions = true)
+        {
+            if (containerName == null)
+                throw new ArgumentNullException(nameof(containerName));
+
+            if (fileName == null)
+                throw new ArgumentNullException(nameof(fileName));
+
+            if (_httpClient == null)
+                throw new ArgumentException("Please call the Init method first.", nameof(_httpClient));
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(accessToken));
+
+            try
+            {
+                string requestUrl = $"{_apiBaseUrl}/blob";
+
+                requestUrl = requestUrl.AddParameterToUri(nameof(containerName), containerName).AddParameterToUri(nameof(fileName), fileName);
+
+
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(requestUrl)
+                };
+
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                HttpResponseMessage responseMessage = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
+
+                return responseMessage.IsSuccessStatusCode;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting file '{FileName}' from container {ContainerName}", fileName, containerName);
+
+                if (!throwExceptions)
+                {
+                    return false;
+                }
+                throw;
+            }
+        }
     }
 }

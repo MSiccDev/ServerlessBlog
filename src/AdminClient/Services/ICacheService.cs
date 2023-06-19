@@ -14,6 +14,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
         Task<List<Post>?> GetPostsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false, int count = 25, int skip = 0);
 
         Task<BlogOverview?> GetCurrentBlogAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false);
+
+        Task<Uri?> UploadFileAsync(byte[] fileBytes, string containerName, string fileName, bool overwriteExisting);
+
+        
         Task RefreshAsync(Guid blogId);
     }
 }

@@ -5,9 +5,7 @@ namespace MSiccDev.ServerlessBlog.DtoModel
     public class FileUploadRequest
     {
         [JsonConstructor]
-#pragma warning disable CS8618
         public FileUploadRequest()
-#pragma warning restore CS8618
         {
 
         }
@@ -23,6 +21,9 @@ namespace MSiccDev.ServerlessBlog.DtoModel
 
         [JsonProperty(Required = Required.Always)]
         public string FileName { get; set; }
+
+        [JsonProperty(Required = Required.Always)]
+        public string ContainerName { get; set; }
 
     }
 }

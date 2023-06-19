@@ -53,9 +53,6 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 
-                //use byte[]
-                //use Content-Disposition Header for indicating the name of the file!
-
                 FileUploadRequest? fileUploadRequest = JsonConvert.DeserializeObject<FileUploadRequest>(requestBody);
 
                 if (fileUploadRequest != null)
@@ -67,9 +64,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     if (!string.IsNullOrWhiteSpace(blobConnectionString))
                     {
                         var blobServiceClient = new BlobServiceClient(blobConnectionString);
-                        string containerName = "msiccdev-blog-blob";
 
-                        BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+                        BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(fileUploadRequest.ContainerName);
 
                         string blobName = $"{Path.GetFileNameWithoutExtension(fileUploadRequest.FileName)}_{Guid.NewGuid()}{Path.GetExtension(fileUploadRequest.FileName)}";
                         BlobClient? blobClient = containerClient.GetBlobClient(blobName);
@@ -88,7 +84,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                             {
                                 if (requestFailedException.ErrorCode == "ContainerNotFound")
                                 {
-                                    await blobServiceClient.CreateBlobContainerAsync(containerName);
+                                    await blobServiceClient.CreateBlobContainerAsync(fileUploadRequest.ContainerName);
 
                                     await blobClient.UploadAsync(new BinaryData(fileBytes), overwrite);
                                 }
@@ -99,8 +95,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                             }
                         }
 
-                        return await req.CreateResponseDataAsync(HttpStatusCode.Created, blobClient.Uri.AbsoluteUri);
-
+                        return await req.CreateResponseDataWithJsonAsync(HttpStatusCode.Created, new FileUploadResponse(blobClient.Uri), _jsonSerializerSettings);
+                        
                     }
 
                     _logger.LogError("Error creating blob object due to missing blob storage connection string");
@@ -117,6 +113,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
         [OpenApiOperation("GET", "Blob", Description = "Gets a file from the Azure Blob Storage.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("containerName", In = ParameterLocation.Query, Type = typeof(string), Required = true, Description = "container name to store the files in", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("fileName", In = ParameterLocation.Query, Type = typeof(string), Required = true, Description = "Name of the file to download", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/octet-stream", typeof(byte[]), Description = "Gets a file by its name in the Azure Blob Storage")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
@@ -139,7 +136,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 if (!string.IsNullOrWhiteSpace(blobConnectionString))
                 {
                     var blobServiceClient = new BlobServiceClient(blobConnectionString);
-                    string containerName = "msiccdev-blog-blob";
+                    string? containerName = req.GetProperty("containerName");
 
                     BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(containerName);
                     BlobClient? blobClient = containerClient.GetBlobClient(fileName);
@@ -182,6 +179,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
         [OpenApiOperation("DELETE", "Blob", Description = "Delete a blob from the Azure Storage.", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("containerName", In = ParameterLocation.Query, Type = typeof(string), Required = true, Description = "container name to store the files in", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("fileName", In = ParameterLocation.Query, Type = typeof(string), Required = true, Description = "Name of the file to delete", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "OK response if the delete operation succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "No file with the specified file name was found")]
@@ -204,7 +202,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 if (!string.IsNullOrWhiteSpace(blobConnectionString))
                 {
                     var blobServiceClient = new BlobServiceClient(blobConnectionString);
-                    string containerName = "msiccdev-blog-blob";
+                    string? containerName = req.GetProperty("containerName");
 
                     BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(containerName);
                     BlobClient? blobClient = containerClient.GetBlobClient(fileName);

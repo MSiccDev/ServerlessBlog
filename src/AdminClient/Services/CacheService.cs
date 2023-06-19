@@ -100,6 +100,26 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
             return currentBlog;
         }
 
+        public async Task<Uri?> UploadFileAsync(byte[] fileBytes, string containerName, string fileName, bool overwriteExisting)
+        {
+            AzureAdAccessTokenResponse? accessTokenData = JsonConvert.DeserializeObject<AzureAdAccessTokenResponse>(await SecureStorage.Default.GetAsync(Constants.AzureAdAccessTokenStorageName));
+
+            if (accessTokenData == null)
+            {
+                _logger.LogError("Error uploading file: No valid AccessToken found in Storage");
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(accessTokenData.AccessToken))
+            {
+                FileUploadResponse? uploadResponse = await _blogClient.UploadFileAsync(accessTokenData.AccessToken, fileBytes, containerName, fileName);
+
+                return uploadResponse?.Url;
+            }
+
+            return null;
+        }
+
         public async Task RefreshAsync(Guid blogId)
         {
             await GetAuthorsAsync(blogId, forceRefresh: true).ConfigureAwait(false);
