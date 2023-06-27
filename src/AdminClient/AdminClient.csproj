@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0-maccatalyst</TargetFramework>
+        <TargetFramework>net7.0-maccatalyst</TargetFramework>
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>
         <OutputType>Exe</OutputType>
         <RootNamespace>MSiccDev.ServerlessBlog.AdminClient</RootNamespace>
@@ -57,18 +57,19 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CommunityToolkit.Maui" Version="2.0.0" />
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
-        <PackageReference Include="Microsoft.Identity.Client" Version="4.49.1" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+        <PackageReference Include="CommunityToolkit.Maui" Version="5.2.0" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Identity.Client" Version="4.54.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.6" />
         <PackageReference Include="MonkeyCache.SQLite" Version="2.0.1" />
-        <PackageReference Include="SQLitePCLRaw.core" Version="2.1.4" />
-        <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.4" />
-        <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="2.1.4" />
-        <PackageReference Include="SQLitePCLRaw.provider.sqlite3" Version="2.1.4" />
+        <PackageReference Include="SQLitePCLRaw.core" Version="2.1.5" />
+        <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.5" />
+        <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="2.1.5" />
+        <PackageReference Include="SQLitePCLRaw.provider.sqlite3" Version="2.1.5" />
+        <PackageReference Update="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -85,9 +86,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ClientSdk\ClientSdk.csproj" />
-      <ProjectReference Include="..\..\..\Maui.SystemIcons\src\MSiccDev.Libs.Maui.SystemIcons.csproj" />
       <ProjectReference Include="..\..\..\Maui.SystemColors\src\MSiccDev.Libs.Maui.SystemColors.csproj" />
+      <ProjectReference Include="..\..\..\Maui.SystemIcons\src\MSiccDev.Libs.Maui.SystemIcons.csproj" />
+      <ProjectReference Include="..\ClientSdk\ClientSdk.csproj" />
     </ItemGroup>
     <ItemGroup>
       <MauiXaml Update="View\TagsPage.xaml">
