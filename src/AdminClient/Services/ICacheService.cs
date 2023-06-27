@@ -22,6 +22,9 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 
         Task<Uri?> UploadFileAsync(byte[] fileBytes, string containerName, string fileName, bool overwriteExisting);
 
+        public Task<byte[]?> GetFileAsync(Uri url);
+
+        public Task<bool> DeleteFileAsync(Uri url);
         
         Task RefreshAsync(Guid blogId);
 
