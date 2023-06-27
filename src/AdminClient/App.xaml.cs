@@ -9,7 +9,8 @@ namespace MSiccDev.ServerlessBlog.AdminClient
         public App(IServiceProvider serviceProvider) : base(serviceProvider)
         {
             InitializeComponent();
-            
+
+            Preferences.Default.Set(Constants.DebugLocallyStorageName, true);
             //Preferences.Default.Set(Constants.HasObtainedValidAccessTokenStorageName, false);
             
             //more inits
@@ -17,7 +18,9 @@ namespace MSiccDev.ServerlessBlog.AdminClient
             serviceProvider.GetRequiredService<ICacheService>().Init($"app_cache_{AppInfo.Current.PackageName}");
 
             this.MainPage = new AppShell(serviceProvider.GetRequiredService<AppShellViewModel>());
-		}
+
+        }
+
 
     }
 }

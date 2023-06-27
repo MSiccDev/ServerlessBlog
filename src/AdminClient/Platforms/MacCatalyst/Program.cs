@@ -1,7 +1,9 @@
 ﻿using UIKit;
 namespace AdminClient;
 
+// ReSharper disable ClassNeverInstantiated.Global
 public class Program
+	// ReSharper restore ClassNeverInstantiated.Global
 {
 	// This is the main entry point of the application.
 	static void Main(string[] args)

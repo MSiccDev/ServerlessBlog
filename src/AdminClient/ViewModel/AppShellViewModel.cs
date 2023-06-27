@@ -2,33 +2,53 @@ using AsyncAwaitBestPractices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 using MSiccDev.ServerlessBlog.AdminClient.Services;
-using MSiccDev.ServerlessBlog.AdminClient.View;
+using MSiccDev.ServerlessBlog.ClientSdk;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
     public class AppShellViewModel : ObservableObject
     {
         private readonly ILogger<AppShellViewModel> _logger;
         private readonly ICacheService _cacheService;
-        private readonly INavigationService _navigationService;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IDialogService _dialogService;
 
-        public AppShellViewModel(ILogger<AppShellViewModel> logger, ICacheService cacheService, INavigationService navigationService)
+        public AppShellViewModel(ILogger<AppShellViewModel> logger, ICacheService cacheService, IAuthorizationService authorizationService, IDialogService dialogService)
         {
             _logger = logger;
 
             _cacheService = cacheService;
-            _navigationService = navigationService;
+            _authorizationService = authorizationService;
+            _dialogService = dialogService;
 
             _cacheService.AuthorizationExpired += (sender, args) =>
-                RefreshAuthorizationAsync().SafeFireAndForget();
+            {
+                _authorizationService.RefreshAuthorizationAsync().SafeFireAndForget();
+            };
 
+            _cacheService.ApiErrorOccured += (sender, args) =>
+            {
+                HandleApiErrorsAsync(args).SafeFireAndForget();
+            };
         }
 
-        private async Task RefreshAuthorizationAsync()
+        private async Task HandleApiErrorsAsync(RequestError? args)
         {
-            //avoiding double navigation in Shell
-            if (Shell.Current.CurrentPage is not LoginPage _)
-                await _navigationService.NavigateToRouteAsync($"{nameof(LoginPage)}?returnRoute={Shell.Current.CurrentPage.GetType().Name}");
+#if MACCATALYST || IOS
+            if (string.IsNullOrWhiteSpace(args?.Message))
+                return;
+
+            if (args.Message.Contains("Code=-1004"))
+            {
+                await _dialogService.ShowMessageAsync("Connection Error", "Service is currently not available. Please try again later.", "OK");
+            }
+            else
+            {
+                await _dialogService.ShowMessageAsync("Error", args.Message, "OK");
+            }
+#endif
         }
+
+
 
 
         public string VersionString => $"Version {AppInfo.Current.VersionString}";

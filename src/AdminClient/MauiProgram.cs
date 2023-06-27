@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using MSiccDev.Libs.Maui.SystemIcons;
+using MSiccDev.ServerlessBlog.AdminClient.Common;
 using MSiccDev.ServerlessBlog.AdminClient.Services;
 using MSiccDev.ServerlessBlog.AdminClient.View;
 using MSiccDev.ServerlessBlog.AdminClient.ViewModel;
@@ -26,30 +27,28 @@ namespace MSiccDev.ServerlessBlog.AdminClient
 #endif
             
             RegisterServices(builder.Services);
-            RegisterViewModels(builder.Services);
-            RegisterViews(builder.Services);
+            RegisterViewsAndViewModels(builder.Services);
 
             return builder.Build();
         }
 
-        private static void RegisterViews(IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<LoginPage>();
-            serviceCollection.AddSingleton<BlogPage>();
-        }
-
-        private static void RegisterViewModels(IServiceCollection serviceCollection)
+        private static void RegisterViewsAndViewModels(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<AppShellViewModel>();
-            serviceCollection.AddSingleton<LoginPageViewModel>();
-            serviceCollection.AddSingleton<BlogPageViewModel>();
+
+            serviceCollection.AddSingletonWithShellRoute<LoginPage, LoginPagePageViewModel>(Constants.LoginPageRoute);
+            serviceCollection.AddSingletonWithShellRoute<BlogPage, BlogPagePageViewModel>(Constants.BlogPageRoute);
+            serviceCollection.AddSingletonWithShellRoute<AuthorPage, AuthorPageViewModel>(Constants.AuthorPageRoute);
+            serviceCollection.AddSingletonWithShellRoute<SettingsPage, SettingsPagePageViewModel>(Constants.SettingsPageRoute);
         }
 
         private static void RegisterServices(IServiceCollection serviceCollection)
         {
             serviceCollection.AddHttpClient();
             serviceCollection.AddSingleton<INavigationService, NavigationService>();
+            serviceCollection.AddSingleton<IAuthorizationService, AuthorizationService>();
             serviceCollection.AddSingleton<IActionSheetService, ActionSheetService>();
+            serviceCollection.AddSingleton<IDialogService, DialogService>();
             serviceCollection.AddSingleton<IBlogClient, BlogClient>();
             serviceCollection.AddSingleton<ICacheService, CacheService>();
         }

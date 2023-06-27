@@ -1,3 +1,4 @@
+using MSiccDev.ServerlessBlog.ClientSdk;
 using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.Services
 {
@@ -7,6 +8,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 
 
         event EventHandler? AuthorizationExpired;
+        event EventHandler<RequestError?>? ApiErrorOccured;
+
+        public event EventHandler? CacheHasChanged;
+        
         Task<List<BlogOverview>?> GetBlogsAsync(int cacheValidity = 30, bool forceRefresh = false);
         Task<List<Author>?> GetAuthorsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false, int count = 10, int skip = 0);
         Task<List<Tag>?> GetTagsAsync(Guid blogId, int cacheValidity = 30, bool forceRefresh = false, int count = 100, int skip = 0);
@@ -19,5 +24,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.Services
 
         
         Task RefreshAsync(Guid blogId);
+
+
+        Task DeleteAsync<TEntity>(Guid blogId, Guid? resourceId) where TEntity : DtoModelBase;
+
+        Task UpdateAsync<TEntity>(TEntity entityToUpdate) where TEntity : DtoModelBase;
     }
 }

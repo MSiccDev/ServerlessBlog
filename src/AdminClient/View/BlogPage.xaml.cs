@@ -4,18 +4,18 @@ namespace MSiccDev.ServerlessBlog.AdminClient.View;
 
 public partial class BlogPage : ContentPage
 {
-	public BlogPage(BlogPageViewModel viewModel)
+	public BlogPage(BlogPagePageViewModel pageViewModel)
 	{
 		InitializeComponent();
 
-		this.BindingContext = viewModel;
+		this.BindingContext = pageViewModel;
 	}
 
 	protected override void OnBindingContextChanged()
 	{
 		base.OnBindingContextChanged();
 
-		if (this.BindingContext is BlogPageViewModel blogPageViewModel)
+		if (this.BindingContext is BlogPagePageViewModel blogPageViewModel)
 		{
 			this.Behaviors.Add(new EventToCommandBehavior
 			{

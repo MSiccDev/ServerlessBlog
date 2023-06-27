@@ -2,15 +2,15 @@
 using Microsoft.Extensions.Logging;
 using MSiccDev.ServerlessBlog.AdminClient.Common;
 using MSiccDev.ServerlessBlog.AdminClient.Services;
-using MSiccDev.ServerlessBlog.ClientSdk;
 using MSiccDev.ServerlessBlog.DtoModel;
 namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 {
-	public class BlogPageViewModel : BaseViewModel
+	// ReSharper disable ClassNeverInstantiated.Global
+	public class BlogPagePageViewModel : BasePageWithAuthorizationViewModel
+		// ReSharper restore ClassNeverInstantiated.Global
 	{
-		private readonly ILogger<BlogPageViewModel> _logger;
+		private readonly ILogger<BlogPagePageViewModel> _logger;
 		private readonly ICacheService _cacheService;
-		private readonly IBlogClient _blogClient;
 
 		private BlogOverview? _savedSelectedBlog;
 
@@ -21,19 +21,17 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 		private AsyncRelayCommand? _refreshCommand;
 		private AsyncRelayCommand? _saveCommand;
 
-		public BlogPageViewModel(ILogger<BlogPageViewModel> logger, ICacheService cacheService, IBlogClient blogClient)
+		public BlogPagePageViewModel(IAuthorizationService authorizationService, ILogger<BlogPagePageViewModel> logger, ICacheService cacheService) :
+			base(authorizationService)
 		{
 			_logger = logger;
 			_cacheService = cacheService;
-			_blogClient = blogClient;
-
+			
 			Connectivity.ConnectivityChanged += (sender, args) =>
 			{
 				NotifyCommandCanExecuteChanges();
 			};
 		}
-
-
 
 		protected override async Task ExecuteViewAppearingAsync()
 		{
@@ -74,6 +72,10 @@ namespace MSiccDev.ServerlessBlog.AdminClient.ViewModel
 				_savedSelectedBlog = await _cacheService.GetCurrentBlogAsync(_savedSelectedBlog.BlogId.GetValueOrDefault(), forceRefresh: true);
 				
 				RaisePropertyChanges();
+			}
+			else
+			{
+				await _authorizationService.RefreshAuthorizationAsync();
 			}
 		}
 
