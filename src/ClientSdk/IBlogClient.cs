@@ -11,7 +11,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
         Task<bool> UpdateAsync<TEntity>(string accessToken, TEntity entityToUpdate, bool throwExceptions = true) where TEntity : DtoModelBase;
         Task<bool> DeleteAsync<TEntity>(string accessToken, Guid blogId, Guid? resourceId = null, bool throwExceptions = true) where TEntity : DtoModelBase;
 
-        Task<FileUploadResponse?> UploadFileAsync(string accessToken, byte[] fileBytes, string containerName, string fileName, bool overwrite = true, bool throwExceptions = true);
+        Task<FileUploadResponse?> UploadFileAsync(string accessToken, byte[] fileBytes, string containerName, string fileName, bool overwrite = true, bool ensureUnique = false, bool throwExceptions = true);
 
         Task<byte[]?> GetFileAsync(string accessToken, string containerName, string fileName, bool throwExceptions = true);
 

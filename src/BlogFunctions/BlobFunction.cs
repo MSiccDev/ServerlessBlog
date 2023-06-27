@@ -43,6 +43,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         [OpenApiOperation("CREATE", "Blob", Description = "Creates a new blob for the attached file.", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiRequestBody("application/json", typeof(FileUploadRequest), Required = true, Description = "The file to upload")]
         [OpenApiParameter("overwrite", In = ParameterLocation.Query, Type = typeof(bool), Required = false, Description = "overwrite existing files with the same name", Visibility = OpenApiVisibilityType.Important)]
+        [OpenApiParameter("ensureUnique", In = ParameterLocation.Query, Type = typeof(bool), Required = false, Description = "make sure the file name is unique", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiResponseWithoutBody(HttpStatusCode.Created, Description = "OK response if the file upload operation succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Response for unauthenticated requests.")]
         [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "text/plain", typeof(string), Description = "Request cannot not be processed, see response body why")]
@@ -67,11 +68,14 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
                         BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(fileUploadRequest.ContainerName);
 
-                        string blobName = $"{Path.GetFileNameWithoutExtension(fileUploadRequest.FileName)}_{Guid.NewGuid()}{Path.GetExtension(fileUploadRequest.FileName)}";
+                        _ = bool.TryParse(req.GetProperty("ensureUnique"), out bool ensureUnique);
+
+                        string blobName = ensureUnique ? $"{Path.GetFileNameWithoutExtension(fileUploadRequest.FileName)}_{Guid.NewGuid()}{Path.GetExtension(fileUploadRequest.FileName)}" : fileUploadRequest.FileName;
+                        
                         BlobClient? blobClient = containerClient.GetBlobClient(blobName);
 
                         _ = bool.TryParse(req.GetProperty("overwrite"), out bool overwrite);
-
+                        
                         try
                         {
                             await blobClient.UploadAsync(new BinaryData(fileBytes), overwrite);

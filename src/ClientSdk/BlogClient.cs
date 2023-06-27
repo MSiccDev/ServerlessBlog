@@ -221,7 +221,7 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             }
         }
 
-        public async Task<FileUploadResponse?> UploadFileAsync(string accessToken, byte[] fileBytes, string containerName, string fileName, bool overwrite = true, bool throwExceptions = true)
+        public async Task<FileUploadResponse?> UploadFileAsync(string accessToken, byte[] fileBytes, string containerName, string fileName, bool overwrite = true, bool ensureUnique = false, bool throwExceptions = true)
         {
             if (containerName == null)
                 throw new ArgumentNullException(nameof(containerName));
@@ -242,7 +242,8 @@ namespace MSiccDev.ServerlessBlog.ClientSdk
             {
                 string requestUrl = $"{_apiBaseUrl}/blob";
 
-                requestUrl = requestUrl.AddParameterToUri("overwrite", overwrite.ToString());
+                requestUrl = requestUrl.AddParameterToUri("overwrite", overwrite.ToString()).
+                                        AddParameterToUri("ensureUnique", ensureUnique.ToString());
 
                 var uploadRequest = new FileUploadRequest
                 {
