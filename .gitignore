@@ -362,3 +362,4 @@ src/EFCore.DesignDummy/Migrations/*
 #.idea
 src/.idea/*
 
+img/sampleupload.json

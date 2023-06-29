@@ -44,14 +44,26 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             return (count, skip);
         }
-        
 
-        public static async Task<HttpResponseData> CreateResponseDataAsync(this HttpRequestData req, HttpStatusCode statusCode, string? message)
+        public static string? GetProperty(this HttpRequestData req, string name)
+        {
+            string result = null;
+            Dictionary<string, string> queryParams = req.GetQueryParameterDictionary();
+
+            if (queryParams.Any(p => p.Key == name))
+                result = queryParams[name];
+
+            return result;
+        }
+
+        public static async Task<HttpResponseData> CreateResponseDataAsync(this HttpRequestData req, HttpStatusCode statusCode, string? message, bool isJson = false)
         {
             HttpResponseData response = req.CreateResponse(statusCode);
 
             if (string.IsNullOrWhiteSpace(message))
                 message = statusCode.ToString();
+
+            response.Headers.Add("Content-Type", isJson ? "application/json; charset=utf-8" : "application/text; charset=utf-8");
 
             await response.WriteStringAsync(message);
 
@@ -79,7 +91,32 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             return response;
         }
-        
+
+        public static async Task<HttpResponseData> CreateResponseDataWithJsonAsync(this HttpRequestData req, HttpStatusCode statusCode, object responseData, JsonSerializerSettings? settings)
+        {
+            string json = JsonConvert.SerializeObject(responseData, settings);
+
+            HttpResponseData response = req.CreateResponse(statusCode);
+            response.Headers.Add("Content-Type", "application/json; charset=utf-8");
+
+            await response.WriteStringAsync(json);
+
+            return response;
+        }
+
+        public static async Task<HttpResponseData> CreateBytesResponseAsync(this HttpRequestData req, HttpStatusCode statusCode, Stream stream, string fileName)
+        {
+            HttpResponseData response = req.CreateResponse(statusCode);
+            response.Headers.Add("Content-Type", "application/octet-stream");
+            response.Headers.Add("Content-disposition", $"attachment; filename=\"{fileName}\"");
+
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+
+            await response.WriteBytesAsync(memoryStream.ToArray());
+
+            return response;
+        }
     }
 }
 
