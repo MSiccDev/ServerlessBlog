@@ -1,6 +1,7 @@
 using System.Net;
 using Azure;
 using Azure.Core.Serialization;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
