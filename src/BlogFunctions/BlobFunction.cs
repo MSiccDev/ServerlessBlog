@@ -60,12 +60,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 {
                     byte[] fileBytes = Convert.FromBase64String(fileUploadRequest.Base64Content);
 
-                    string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString");
-
+                    BlobServiceClient? blobServiceClient = null;
+#if DEBUG
+                    string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
                     if (!string.IsNullOrWhiteSpace(blobConnectionString))
-                    {
-                        var blobServiceClient = new BlobServiceClient(blobConnectionString);
+                        blobServiceClient = new BlobServiceClient(blobConnectionString);
+#else
+                string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
+                if (!string.IsNullOrWhiteSpace(storageAccountName))
+                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
+#endif
 
+                    if (blobServiceClient != null)
+                    {
                         BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(fileUploadRequest.ContainerName);
 
                         _ = bool.TryParse(req.GetProperty("ensureUnique"), out bool ensureUnique);
@@ -103,7 +110,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                         
                     }
 
-                    _logger.LogError("Error creating blob object due to missing blob storage connection string");
+                    _logger.LogError("Error creating blob object because a BlobServiceClient couldn't be created");
                     return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
                 }
 
@@ -135,11 +142,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             try
             {
-                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString");
-
+                BlobServiceClient? blobServiceClient = null;
+#if DEBUG
+                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
                 if (!string.IsNullOrWhiteSpace(blobConnectionString))
+                    blobServiceClient = new BlobServiceClient(blobConnectionString);
+#else
+                string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
+                if (!string.IsNullOrWhiteSpace(storageAccountName))
+                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
+#endif
+
+                if (blobServiceClient != null)
                 {
-                    var blobServiceClient = new BlobServiceClient(blobConnectionString);
                     string? containerName = req.GetProperty("containerName");
 
                     BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(containerName);
@@ -169,7 +184,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     }
                 }
 
-                _logger.LogError("Error getting file due to missing blob storage connection string");
+                _logger.LogError("Error getting file because a BlobServiceClient couldn't be created");
                 return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 
             }
@@ -201,11 +216,19 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             try
             {
-                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString");
-
+                BlobServiceClient? blobServiceClient = null;
+#if DEBUG
+                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
                 if (!string.IsNullOrWhiteSpace(blobConnectionString))
+                    blobServiceClient = new BlobServiceClient(blobConnectionString);
+#else
+                string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
+                if (!string.IsNullOrWhiteSpace(storageAccountName))
+                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
+#endif
+
+                if (blobServiceClient != null)
                 {
-                    var blobServiceClient = new BlobServiceClient(blobConnectionString);
                     string? containerName = req.GetProperty("containerName");
 
                     BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(containerName);
@@ -224,7 +247,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     return req.CreateResponse(HttpStatusCode.OK);
                 }
 
-                _logger.LogError("Error deleting file due to missing blob storage connection string");
+                _logger.LogError("Error deleting file because a BlobServiceClient couldn't be created");
                 return await req.CreateResponseDataAsync(HttpStatusCode.InternalServerError, "An internal server error occured. Error details logged.");
 
             }
