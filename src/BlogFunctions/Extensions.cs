@@ -47,7 +47,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
         public static string? GetProperty(this HttpRequestData req, string name)
         {
-            string result = null;
+            string? result = null;
             Dictionary<string, string> queryParams = req.GetQueryParameterDictionary();
 
             if (queryParams.Any(p => p.Key == name))
