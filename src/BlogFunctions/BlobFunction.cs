@@ -62,16 +62,20 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                     byte[] fileBytes = Convert.FromBase64String(fileUploadRequest.Base64Content);
 
                     BlobServiceClient? blobServiceClient = null;
+                    string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
+                    string? blobServiceUrl = null;
+                    
 #if DEBUG
-                    string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
-                    if (!string.IsNullOrWhiteSpace(blobConnectionString))
-                        blobServiceClient = new BlobServiceClient(blobConnectionString);
+                    if (!string.IsNullOrWhiteSpace(storageAccountName))
+                        blobServiceUrl = $"https://127.0.0.1:10000/{storageAccountName}";
 #else
-                string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
                 if (!string.IsNullOrWhiteSpace(storageAccountName))
-                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
+                     blobServiceUrl = $"https://{storageAccountName}.blob.core.windows.net";
 #endif
+                    if (!string.IsNullOrWhiteSpace(blobServiceUrl))
+                        blobServiceClient = new BlobServiceClient(new Uri(blobServiceUrl), new DefaultAzureCredential());
 
+                   
                     if (blobServiceClient != null)
                     {
                         BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(fileUploadRequest.ContainerName);
@@ -144,15 +148,18 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             try
             {
                 BlobServiceClient? blobServiceClient = null;
-#if DEBUG
-                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
-                if (!string.IsNullOrWhiteSpace(blobConnectionString))
-                    blobServiceClient = new BlobServiceClient(blobConnectionString);
-#else
                 string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
+                string? blobServiceUrl = null;
+                    
+#if DEBUG
                 if (!string.IsNullOrWhiteSpace(storageAccountName))
-                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
+                    blobServiceUrl = $"https://127.0.0.1:10000/{storageAccountName}";
+#else
+                if (!string.IsNullOrWhiteSpace(storageAccountName))
+                     blobServiceUrl = $"https://{storageAccountName}.blob.core.windows.net";
 #endif
+                if (!string.IsNullOrWhiteSpace(blobServiceUrl))
+                    blobServiceClient = new BlobServiceClient(new Uri(blobServiceUrl), new DefaultAzureCredential());
 
                 if (blobServiceClient != null)
                 {
@@ -218,15 +225,18 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
             try
             {
                 BlobServiceClient? blobServiceClient = null;
-#if DEBUG
-                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
-                if (!string.IsNullOrWhiteSpace(blobConnectionString))
-                    blobServiceClient = new BlobServiceClient(blobConnectionString);
-#else
                 string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
+                string? blobServiceUrl = null;
+                    
+#if DEBUG
                 if (!string.IsNullOrWhiteSpace(storageAccountName))
-                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
+                    blobServiceUrl = $"https://127.0.0.1:10000/{storageAccountName}";
+#else
+                if (!string.IsNullOrWhiteSpace(storageAccountName))
+                     blobServiceUrl = $"https://{storageAccountName}.blob.core.windows.net";
 #endif
+                if (!string.IsNullOrWhiteSpace(blobServiceUrl))
+                    blobServiceClient = new BlobServiceClient(new Uri(blobServiceUrl), new DefaultAzureCredential());
 
                 if (blobServiceClient != null)
                 {

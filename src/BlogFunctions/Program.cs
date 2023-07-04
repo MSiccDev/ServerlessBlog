@@ -35,7 +35,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 					              {
 						              Info = new OpenApiInfo
 						              {
-							              Version = "1.23131.0",
+							              Version = "1.23271.0",
 							              Title = "Serverless Blog API",
 							              Description = "This is the API on which the serverless blog engine is running.",
 							              TermsOfService = new Uri("https://github.com/MSiccDev/ServerlessBlog#readme"),
