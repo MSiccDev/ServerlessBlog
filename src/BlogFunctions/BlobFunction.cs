@@ -61,16 +61,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 {
                     byte[] fileBytes = Convert.FromBase64String(fileUploadRequest.Base64Content);
 
-                    BlobServiceClient? blobServiceClient = null;
-#if DEBUG
-                    string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
-                    if (!string.IsNullOrWhiteSpace(blobConnectionString))
-                        blobServiceClient = new BlobServiceClient(blobConnectionString);
-#else
-                string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
-                if (!string.IsNullOrWhiteSpace(storageAccountName))
-                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
-#endif
+                    BlobServiceClient? blobServiceClient = GetBlobServiceClient();
 
                     if (blobServiceClient != null)
                     {
@@ -143,16 +134,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             try
             {
-                BlobServiceClient? blobServiceClient = null;
-#if DEBUG
-                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
-                if (!string.IsNullOrWhiteSpace(blobConnectionString))
-                    blobServiceClient = new BlobServiceClient(blobConnectionString);
-#else
-                string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
-                if (!string.IsNullOrWhiteSpace(storageAccountName))
-                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
-#endif
+                BlobServiceClient? blobServiceClient = GetBlobServiceClient();
 
                 if (blobServiceClient != null)
                 {
@@ -198,6 +180,8 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
 
 
+
+
         [OpenApiOperation("DELETE", "Blob", Description = "Delete a blob from the Azure Storage.", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("containerName", In = ParameterLocation.Query, Type = typeof(string), Required = true, Description = "container name to store the files in", Visibility = OpenApiVisibilityType.Important)]
         [OpenApiParameter("fileName", In = ParameterLocation.Query, Type = typeof(string), Required = true, Description = "Name of the file to delete", Visibility = OpenApiVisibilityType.Important)]
@@ -217,16 +201,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
 
             try
             {
-                BlobServiceClient? blobServiceClient = null;
-#if DEBUG
-                string? blobConnectionString = Environment.GetEnvironmentVariable("BlobConnectionString"); 
-                if (!string.IsNullOrWhiteSpace(blobConnectionString))
-                    blobServiceClient = new BlobServiceClient(blobConnectionString);
-#else
-                string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
-                if (!string.IsNullOrWhiteSpace(storageAccountName))
-                    new BlobServiceClient(new Uri($"https://{storageAccountName}.blob.core.windows.net"), new DefaultAzureCredential());
-#endif
+                BlobServiceClient? blobServiceClient = GetBlobServiceClient();
 
                 if (blobServiceClient != null)
                 {
@@ -260,5 +235,35 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
         }
 
 
+
+        private BlobServiceClient? GetBlobServiceClient()
+        {
+
+            BlobServiceClient? blobServiceClient = null;
+            string? storageAccountName = Environment.GetEnvironmentVariable("StorageAccountName");
+            string? blobServiceUrl = null;
+
+#if DEBUG
+            if (!string.IsNullOrWhiteSpace(storageAccountName))
+                blobServiceUrl = $"https://127.0.0.1:10000/{storageAccountName}";
+#else
+                if (!string.IsNullOrWhiteSpace(storageAccountName))
+                     blobServiceUrl = $"https://{storageAccountName}.blob.core.windows.net";
+#endif
+
+            if (!string.IsNullOrWhiteSpace(blobServiceUrl))
+            {
+                _logger.LogInformation("Using Blob Service Url: {Url}", blobServiceUrl);
+                blobServiceClient = new BlobServiceClient(new Uri(blobServiceUrl), new DefaultAzureCredential());
+            }
+            else
+            {
+                _logger.LogError("Cannot read StorageAccountName setting for creation of blobServiceUrl");
+            }
+
+            return blobServiceClient;
+        }
+        
+        
     }
 }

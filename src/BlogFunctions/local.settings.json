@@ -4,10 +4,11 @@
       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
       "BlobConnectionString": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;",
       "SqlConnectionString": "Data Source=localhost;Initial Catalog=localDB;User ID=sa;Password=thisShouldB3Stronger!",
+      "StorageAccountName": "devstoreaccount1",
       "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
       "OpenApi__Version": "v3",
       "OpenApi__DocTitle": "Serverless Blog API",
-      "OpenApi__DocVersion": "1.22501.0",
+      "OpenApi__DocVersion": "1.23271.0",
       "OpenApi__Auth__TenantId": "052ead01-369c-48f8-8e09-2b142c86f42c"
     }
 }
