@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 namespace MSiccDev.ServerlessBlog.DtoModel
 {
@@ -10,9 +9,16 @@ namespace MSiccDev.ServerlessBlog.DtoModel
 
         }
 
-        public FileUploadResponse(Uri url) =>
-            this.Url = url;
+        public FileUploadResponse(string fileName, string containerName)
+        {
+            this.FileName = fileName;
+            this.ContainerName = containerName;
+        }
 
-        public Uri Url { get; set; }
+        [JsonProperty(Required = Required.Always)]
+        public string FileName { get; set; }
+
+        [JsonProperty(Required = Required.Always)]
+        public string ContainerName { get; set; }
     }
 }

@@ -98,7 +98,7 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                             }
                         }
 
-                        return await req.CreateResponseDataWithJsonAsync(HttpStatusCode.Created, new FileUploadResponse(blobClient.Uri), _jsonSerializerSettings);
+                        return await req.CreateResponseDataWithJsonAsync(HttpStatusCode.Created, new FileUploadResponse(blobName, fileUploadRequest.ContainerName), _jsonSerializerSettings);
                         
                     }
 
@@ -139,6 +139,11 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 if (blobServiceClient != null)
                 {
                     string? containerName = req.GetProperty("containerName");
+                    if (string.IsNullOrWhiteSpace(containerName))
+                    {
+                        _logger.LogError("Error: file cannot be found without providing a container name");
+                        return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Please provide a valid container name.");
+                    }
 
                     BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(containerName);
                     BlobClient? blobClient = containerClient.GetBlobClient(fileName);
@@ -206,7 +211,12 @@ namespace MSiccDev.ServerlessBlog.BlogFunctions
                 if (blobServiceClient != null)
                 {
                     string? containerName = req.GetProperty("containerName");
-
+                    if (string.IsNullOrWhiteSpace(containerName))
+                    {
+                        _logger.LogError("Error: file cannot be found without providing a container name");
+                        return await req.CreateResponseDataAsync(HttpStatusCode.BadRequest, "Please provide a valid container name.");
+                    }
+                    
                     BlobContainerClient? containerClient = blobServiceClient.GetBlobContainerClient(containerName);
                     BlobClient? blobClient = containerClient.GetBlobClient(fileName);
 
