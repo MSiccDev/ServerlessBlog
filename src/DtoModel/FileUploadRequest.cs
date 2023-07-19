@@ -10,10 +10,11 @@ namespace MSiccDev.ServerlessBlog.DtoModel
 
         }
 
-        public FileUploadRequest(byte[] fileBytes, string fileName)
+        public FileUploadRequest(byte[] fileBytes, string fileName, string containerName)
         {
             this.Base64Content = Convert.ToBase64String(fileBytes, Base64FormattingOptions.None);
             this.FileName = fileName;
+            this.ContainerName = containerName;
         }
 
         [JsonProperty(Required = Required.Always)]
